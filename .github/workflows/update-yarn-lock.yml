@@ -1,0 +1,92 @@
+name: Update yarn.lock
+
+on:
+  workflow_call:
+    inputs:
+      jdk-distribution:
+        type: string
+        required: true
+      jdk-version:
+        type: string
+        required: true
+      app-client-id:
+        type: string
+        required: true
+    secrets:
+      app-private-key:
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: chore/update-yarn-lock
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Update yarn.lock
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Create a token for the app
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ inputs.app-client-id }}
+          private-key: ${{ secrets.app-private-key }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Set up the JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: ${{ inputs.jdk-distribution }}
+          java-version: ${{ inputs.jdk-version }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Regenerate yarn.lock
+        run: |
+          tasks=()
+          if [ -f kotlin-js-store/yarn.lock ]; then
+            rm -f kotlin-js-store/yarn.lock build/js/yarn.lock
+            tasks+=(kotlinUpgradeYarnLock)
+          fi
+          if [ -f kotlin-js-store/wasm/yarn.lock ]; then
+            rm -f kotlin-js-store/wasm/yarn.lock build/wasm/yarn.lock
+            tasks+=(kotlinWasmUpgradeYarnLock)
+          fi
+          if [ "${#tasks[@]}" -eq 0 ]; then
+            echo "::error::Neither kotlin-js-store/yarn.lock nor kotlin-js-store/wasm/yarn.lock exists."
+            exit 1
+          fi
+          ./gradlew "${tasks[@]}"
+
+      - name: Open or update the pull request
+        id: pull-request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          sign-commits: true
+          add-paths: kotlin-js-store
+          branch: chore/update-yarn-lock
+          delete-branch: true
+          commit-message: "chore(deps): update yarn.lock"
+          title: "chore(deps): update yarn.lock"
+          body: "`yarn.lock` was regenerated from scratch, so every npm package was resolved again to the newest version its range allows."
+
+      - name: Enable auto-merge
+        if: contains(fromJSON('["created", "updated"]'), steps.pull-request.outputs.pull-request-operation)
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PULL_REQUEST: ${{ steps.pull-request.outputs.pull-request-url }}
+        run: gh pr merge --auto --squash "$PULL_REQUEST"

@@ -1,0 +1,117 @@
+name: Kotlin lint
+
+on:
+  workflow_call:
+    inputs:
+      jdk-distribution:
+        type: string
+        required: true
+      jdk-version:
+        type: string
+        required: true
+      working-directory:
+        type: string
+        required: false
+        default: .
+      detekt-task:
+        type: string
+        required: false
+        default: detekt
+      ktlint-task:
+        type: string
+        required: false
+        default: ktlintCheck
+
+permissions: {}
+
+jobs:
+  detekt:
+    name: Detekt
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up the JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: ${{ inputs.jdk-distribution }}
+          java-version: ${{ inputs.jdk-version }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run Detekt
+        env:
+          TASK: ${{ inputs.detekt-task }}
+        run: ./gradlew "$TASK"
+
+  ktlint:
+    name: ktlint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up the JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: ${{ inputs.jdk-distribution }}
+          java-version: ${{ inputs.jdk-version }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run ktlint
+        env:
+          TASK: ${{ inputs.ktlint-task }}
+        run: ./gradlew "$TASK"
+
+  version-catalog:
+    name: Version catalog format
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up the JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: ${{ inputs.jdk-distribution }}
+          java-version: ${{ inputs.jdk-version }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Format the version catalog
+        run: ./gradlew versionCatalogFormat
+
+      - name: Check that formatting changed nothing
+        run: git diff --exit-code

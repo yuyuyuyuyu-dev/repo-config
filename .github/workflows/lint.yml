@@ -1,0 +1,16 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  oxfmt:
+    name: Oxfmt
+    permissions:
+      contents: read
+    uses: ./.github/workflows/oxfmt.yml

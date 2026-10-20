@@ -1,0 +1,73 @@
+name: Deploy to GitHub Pages
+
+on:
+  workflow_call:
+    inputs:
+      jdk-distribution:
+        type: string
+        required: true
+      jdk-version:
+        type: string
+        required: true
+      gradle-arguments:
+        type: string
+        required: true
+      distribution-directory:
+        type: string
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
+      - name: Set up the JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: ${{ inputs.jdk-distribution }}
+          java-version: ${{ inputs.jdk-version }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build
+        env:
+          GRADLE_ARGUMENTS: ${{ inputs.gradle-arguments }}
+        run: |
+          mapfile -t invocations <<< "$GRADLE_ARGUMENTS"
+          for invocation in "${invocations[@]}"; do
+            read -r -a arguments <<< "$invocation"
+            if [ "${#arguments[@]}" -gt 0 ]; then
+              ./gradlew "${arguments[@]}"
+            fi
+          done
+
+      - name: Upload the distribution
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ inputs.distribution-directory }}
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
