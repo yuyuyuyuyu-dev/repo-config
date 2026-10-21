@@ -82,7 +82,7 @@ jobs:
 
 ### Deploy to GitHub Pages
 
-Builds the Wasm app and deploys it to GitHub Pages. It follows the layout of the Compose Multiplatform template: it exports the library definitions of [AboutLibraries](https://github.com/mikepenz/AboutLibraries) with `./gradlew :shared:exportLibraryDefinitions`, builds with `./gradlew :webApp:wasmJsBrowserDistribution`, and deploys `webApp/build/dist/wasmJs/productionExecutable`. Where the library definitions are written is set by `aboutLibraries.export.outputFile` in `shared/build.gradle.kts`.
+Builds the Wasm app and deploys it to GitHub Pages. It follows the layout of the Compose Multiplatform template: it exports the library definitions of [AboutLibraries](https://github.com/mikepenz/AboutLibraries) with `./gradlew :shared:exportLibraryDefinitions`, builds with `./gradlew :<app-module>:wasmJsBrowserDistribution`, and deploys `<app-module>/build/dist/wasmJs/productionExecutable`. Where the library definitions are written is set by `aboutLibraries.export.outputFile` in `shared/build.gradle.kts`.
 
 When it is called on `workflow_run`, it builds the commit that the triggering run checked, not the latest one.
 
@@ -106,7 +106,13 @@ jobs:
       pages: write
       id-token: write
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/deploy-to-github-pages.yml@main
+    with:
+      app-module: webApp
 ```
+
+| Input        | Default | Description                                   |
+| ------------ | ------- | --------------------------------------------- |
+| `app-module` |         | The name of the Gradle module of the web app. |
 
 The repository has to set the source of GitHub Pages to GitHub Actions in its settings.
 

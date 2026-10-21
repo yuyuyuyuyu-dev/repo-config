@@ -2,6 +2,10 @@ name: Deploy to GitHub Pages
 
 on:
   workflow_call:
+    inputs:
+      app-module:
+        type: string
+        required: true
 
 permissions: {}
 
@@ -46,12 +50,14 @@ jobs:
         run: ./gradlew :shared:exportLibraryDefinitions
 
       - name: Build
-        run: ./gradlew :webApp:wasmJsBrowserDistribution
+        env:
+          APP_MODULE: ${{ inputs.app-module }}
+        run: ./gradlew ":$APP_MODULE:wasmJsBrowserDistribution"
 
       - name: Upload the distribution
         uses: actions/upload-pages-artifact@v5
         with:
-          path: webApp/build/dist/wasmJs/productionExecutable
+          path: ${{ inputs.app-module }}/build/dist/wasmJs/productionExecutable
 
       - name: Deploy to GitHub Pages
         id: deployment
