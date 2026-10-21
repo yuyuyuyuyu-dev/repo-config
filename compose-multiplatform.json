@@ -2,7 +2,23 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
     {
-      "matchPackageNames": ["org.jetbrains.compose*"],
+      "matchPackageNames": [
+        "org.jetbrains.compose:org.jetbrains.compose.gradle.plugin",
+        "org.jetbrains.compose:compose-gradle-plugin",
+        "org.jetbrains.compose.components:components-*",
+        "org.jetbrains.compose.runtime:runtime*",
+        "org.jetbrains.compose.ui:ui*",
+        "org.jetbrains.compose.foundation:foundation*",
+        "org.jetbrains.compose.material:material*",
+        "org.jetbrains.compose.material3:material3*",
+        "org.jetbrains.compose.material3.adaptive:adaptive*",
+        "org.jetbrains.androidx.lifecycle:lifecycle-*",
+        "org.jetbrains.androidx.navigation:navigation-*",
+        "org.jetbrains.androidx.navigation3:navigation3-*",
+        "org.jetbrains.androidx.navigationevent:navigationevent-compose",
+        "org.jetbrains.androidx.savedstate:savedstate*",
+        "org.jetbrains.androidx.window:window-core"
+      ],
       "enabled": false
     }
   ]
