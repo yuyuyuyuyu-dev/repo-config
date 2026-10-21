@@ -1,19 +1,17 @@
 # repo-config
 
-Workflows, an action and Renovate presets shared by the repositories of yuyuyuyuyu-dev.
+Shared config and workflows bitween my repositories.（「自分のリポジトリで使う共通の設定やワークフロー」と書いたつもり）
 
 ## Table of contents
 
+- なぜそれは作られたのか（TODO: 英語化）
 - [What it provides](#what-it-provides)
-- [Workflows](#workflows)
-  - [Oxfmt](#oxfmt)
-  - [Kotlin lint](#kotlin-lint)
-  - [Deploy to GitHub Pages](#deploy-to-github-pages)
-  - [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)
-- [Actions](#actions)
-  - [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle)
-- [Renovate presets](#renovate-presets)
+- How to use
 - [License](#license)
+
+## なぜそれは作られたのか（TODO: 英語化）
+
+それぞれのリポジトリで何度も同じワークフローを定義していて、新しいリポジトリを作った時にこれまでと同じ処理になっているかの確認が手間になってきたから。
 
 ## What it provides
 
