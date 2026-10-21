@@ -30,12 +30,12 @@ runs:
           echo "::error::Pass true or false as compose-multiplatform."
           exit 1
         fi
-        if [ -n "$DISTRIBUTION$VERSION" ] && { [ -z "$DISTRIBUTION" ] || [ -z "$VERSION" ]; }; then
-          echo "::error::Pass distribution and version together, or neither."
+        if [ "$COMPOSE_MULTIPLATFORM" = true ] && [ -n "$DISTRIBUTION$VERSION" ]; then
+          echo "::error::A Compose Multiplatform project runs on the JDK of the template, so pass no distribution or version."
           exit 1
         fi
-        if [ "$COMPOSE_MULTIPLATFORM" = true ] && [ -n "$DISTRIBUTION" ]; then
-          echo "::error::A Compose Multiplatform project runs on the JDK of the template, so pass no distribution or version."
+        if [ -n "$DISTRIBUTION$VERSION" ] && { [ -z "$DISTRIBUTION" ] || [ -z "$VERSION" ]; }; then
+          echo "::error::Pass distribution and version together, or neither."
           exit 1
         fi
         if [ "$COMPOSE_MULTIPLATFORM" = true ]; then
