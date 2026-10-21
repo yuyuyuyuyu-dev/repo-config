@@ -11,24 +11,24 @@ Workflows, an action and Renovate presets shared by the repositories of yuyuyuyu
   - [Deploy to GitHub Pages](#deploy-to-github-pages)
   - [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)
 - [Actions](#actions)
-  - [Set up the JDK](#set-up-the-jdk)
+  - [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle)
 - [Renovate presets](#renovate-presets)
 - [License](#license)
 
 ## What it provides
 
-| Name                                                   | For                            | What it does                                                                          |
-| ------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------- |
-| [Oxfmt](#oxfmt)                                        | Every repository               | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter).        |
-| [Kotlin lint](#kotlin-lint)                            | Kotlin projects                | Runs Detekt and ktlint, and checks the formatting of the version catalog.             |
-| [Deploy to GitHub Pages](#deploy-to-github-pages)      | Compose for Web projects       | Builds the app and deploys it to GitHub Pages.                                        |
-| [Update the Wasm yarn.lock](#update-the-wasm-yarnlock) | Compose for Web projects       | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it.    |
-| [Set up the JDK](#set-up-the-jdk)                      | Kotlin projects                | Sets up Zulu 25 for a Kotlin project, or Zulu 21 for a Compose Multiplatform project. |
-| [Renovate presets](#renovate-presets)                  | Repositories that use Renovate | Groups and auto-merges minor and patch updates.                                       |
+| Name                                                    | For                            | What it does                                                                                       |
+| ------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| [Oxfmt](#oxfmt)                                         | Every repository               | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter).                     |
+| [Kotlin lint](#kotlin-lint)                             | Kotlin projects                | Runs Detekt and ktlint, and checks the formatting of the version catalog.                          |
+| [Deploy to GitHub Pages](#deploy-to-github-pages)       | Compose for Web projects       | Builds the app and deploys it to GitHub Pages.                                                     |
+| [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)  | Compose for Web projects       | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it.                 |
+| [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) | Kotlin projects                | Sets up Gradle on Zulu 25 for a Kotlin project, or on Zulu 21 for a Compose Multiplatform project. |
+| [Renovate presets](#renovate-presets)                   | Repositories that use Renovate | Groups and auto-merges minor and patch updates.                                                    |
 
 ## Workflows
 
-Each workflow is a reusable workflow. Call it from a job in your own workflow, which decides when it runs. The workflows that run Gradle choose the JDK with [Set up the JDK](#set-up-the-jdk).
+Each workflow is a reusable workflow. Call it from a job in your own workflow, which decides when it runs. The workflows that run Gradle set it up with [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle).
 
 ### Oxfmt
 
@@ -47,7 +47,7 @@ jobs:
 
 Runs three Gradle tasks as parallel jobs: `detekt` of the [Detekt Gradle plugin](https://detekt.dev/docs/gettingstarted/gradle), `ktlintCheck` of [ktlint-gradle](https://github.com/JLLeitschuh/ktlint-gradle), and `versionCatalogFormat` of [version-catalog-update](https://github.com/littlerobots/version-catalog-update-plugin), which fails when the version catalog is not formatted. The project has to apply these three plugins.
 
-Gradle runs on the JDK that [Set up the JDK](#set-up-the-jdk) chooses from the inputs. A Kotlin project passes nothing and gets Zulu 25:
+Gradle runs on the JDK that [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) chooses from the inputs. A Kotlin project passes nothing and gets Zulu 25:
 
 ```yaml
 jobs:
@@ -65,12 +65,12 @@ with:
   compose-multiplatform: true
 ```
 
-| Input                   | Default | Description                                                    |
-| ----------------------- | ------- | -------------------------------------------------------------- |
-| `compose-multiplatform` | `false` | `true` for a Compose Multiplatform project.                    |
-| `jdk-distribution`      |         | Passed to [Set up the JDK](#set-up-the-jdk) as `distribution`. |
-| `jdk-version`           |         | Passed to [Set up the JDK](#set-up-the-jdk) as `version`.      |
-| `working-directory`     | `.`     | The directory that has `gradlew`.                              |
+| Input                   | Default | Description                                                                          |
+| ----------------------- | ------- | ------------------------------------------------------------------------------------ |
+| `compose-multiplatform` | `false` | `true` for a Compose Multiplatform project.                                          |
+| `jdk-distribution`      |         | Passed to [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) as `distribution`. |
+| `jdk-version`           |         | Passed to [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) as `version`.      |
+| `working-directory`     | `.`     | The directory that has `gradlew`.                                                    |
 
 ### Deploy to GitHub Pages
 
@@ -148,14 +148,14 @@ The app needs read and write access to the contents and the pull requests of the
 
 ## Actions
 
-### Set up the JDK
+### Set up the JDK and Gradle
 
-Sets up the JDK to run Gradle on. Use it in the jobs of your own workflows that run Gradle, with the same inputs as the workflows of this repository get, so that every job runs on the same JDK:
+Sets up Gradle and the JDK it runs on. Use it in the jobs of your own workflows that run Gradle, with the same inputs as the workflows of this repository get, so that every job runs Gradle on the same JDK:
 
 ```yaml
 steps:
-  - name: Set up the JDK
-    uses: yuyuyuyuyu-dev/repo-config/.github/actions/setup-jdk@main
+  - name: Set up the JDK and Gradle
+    uses: yuyuyuyuyu-dev/repo-config/.github/actions/setup-jdk-and-gradle@main
     with:
       compose-multiplatform: true
 ```

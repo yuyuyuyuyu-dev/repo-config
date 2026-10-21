@@ -38,13 +38,10 @@ jobs:
           sparse-checkout: .github/actions
           persist-credentials: false
 
-      - name: Set up the JDK
-        uses: ./.repo-config/.github/actions/setup-jdk
+      - name: Set up the JDK and Gradle
+        uses: ./.repo-config/.github/actions/setup-jdk-and-gradle
         with:
           compose-multiplatform: true
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
 
       - name: Build
         env:

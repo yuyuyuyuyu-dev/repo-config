@@ -44,15 +44,12 @@ jobs:
           sparse-checkout: .github/actions
           persist-credentials: false
 
-      - name: Set up the JDK
-        uses: ./.repo-config/.github/actions/setup-jdk
+      - name: Set up the JDK and Gradle
+        uses: ./.repo-config/.github/actions/setup-jdk-and-gradle
         with:
           compose-multiplatform: ${{ inputs.compose-multiplatform }}
           distribution: ${{ inputs.jdk-distribution }}
           version: ${{ inputs.jdk-version }}
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
 
       - name: Run Detekt
         run: ./gradlew detekt
@@ -80,15 +77,12 @@ jobs:
           sparse-checkout: .github/actions
           persist-credentials: false
 
-      - name: Set up the JDK
-        uses: ./.repo-config/.github/actions/setup-jdk
+      - name: Set up the JDK and Gradle
+        uses: ./.repo-config/.github/actions/setup-jdk-and-gradle
         with:
           compose-multiplatform: ${{ inputs.compose-multiplatform }}
           distribution: ${{ inputs.jdk-distribution }}
           version: ${{ inputs.jdk-version }}
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck
@@ -116,15 +110,12 @@ jobs:
           sparse-checkout: .github/actions
           persist-credentials: false
 
-      - name: Set up the JDK
-        uses: ./.repo-config/.github/actions/setup-jdk
+      - name: Set up the JDK and Gradle
+        uses: ./.repo-config/.github/actions/setup-jdk-and-gradle
         with:
           compose-multiplatform: ${{ inputs.compose-multiplatform }}
           distribution: ${{ inputs.jdk-distribution }}
           version: ${{ inputs.jdk-version }}
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
 
       - name: Format the version catalog
         run: ./gradlew versionCatalogFormat

@@ -1,5 +1,5 @@
-name: Set up the JDK
-description: Sets up the JDK for a Kotlin project, or the JDK of the template for a Compose Multiplatform project.
+name: Set up the JDK and Gradle
+description: Sets up Gradle on the JDK for a Kotlin project, or on the JDK of the template for a Compose Multiplatform project.
 
 inputs:
   compose-multiplatform:
@@ -55,3 +55,6 @@ runs:
         java-version: ${{ steps.jdk.outputs.version }}
       env:
         GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v6
