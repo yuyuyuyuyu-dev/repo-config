@@ -58,7 +58,7 @@ jobs:
           retention-days: 1
 
   pull-request:
-    name: Open, update or close the pull request
+    name: Open or update the pull request
     needs: regenerate
     runs-on: ubuntu-latest
     permissions: {}
@@ -84,7 +84,7 @@ jobs:
           name: wasm-yarn-lock
           path: kotlin-js-store/wasm
 
-      - name: Open, update or close the pull request
+      - name: Open or update the pull request
         id: pull-request
         uses: peter-evans/create-pull-request@v8
         with:
