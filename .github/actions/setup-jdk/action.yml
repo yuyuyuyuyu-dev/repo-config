@@ -1,0 +1,11 @@
+name: Set up the JDK
+description: Sets up the JDK that the Compose Multiplatform template runs Gradle on.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up the JDK
+      uses: actions/setup-java@v6
+      with:
+        distribution: zulu
+        java-version: "21"

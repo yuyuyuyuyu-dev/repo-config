@@ -1,18 +1,8 @@
-name: Kotlin lint
+name: Compose Multiplatform lint
 
 on:
   workflow_call:
     inputs:
-      jdk-distribution:
-        type: string
-        required: true
-      jdk-version:
-        type: string
-        required: true
-      working-directory:
-        type: string
-        required: false
-        default: .
       detekt-task:
         type: string
         required: false
@@ -30,22 +20,23 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    defaults:
-      run:
-        working-directory: ${{ inputs.working-directory }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
         with:
           persist-credentials: false
 
-      - name: Set up the JDK
-        uses: actions/setup-java@v6
+      - name: Check out repo-config
+        uses: actions/checkout@v7
         with:
-          distribution: ${{ inputs.jdk-distribution }}
-          java-version: ${{ inputs.jdk-version }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .repo-config
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Set up the JDK
+        uses: ./.repo-config/.github/actions/setup-jdk
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -60,22 +51,23 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    defaults:
-      run:
-        working-directory: ${{ inputs.working-directory }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
         with:
           persist-credentials: false
 
-      - name: Set up the JDK
-        uses: actions/setup-java@v6
+      - name: Check out repo-config
+        uses: actions/checkout@v7
         with:
-          distribution: ${{ inputs.jdk-distribution }}
-          java-version: ${{ inputs.jdk-version }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .repo-config
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Set up the JDK
+        uses: ./.repo-config/.github/actions/setup-jdk
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -90,22 +82,23 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    defaults:
-      run:
-        working-directory: ${{ inputs.working-directory }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
         with:
           persist-credentials: false
 
-      - name: Set up the JDK
-        uses: actions/setup-java@v6
+      - name: Check out repo-config
+        uses: actions/checkout@v7
         with:
-          distribution: ${{ inputs.jdk-distribution }}
-          java-version: ${{ inputs.jdk-version }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .repo-config
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Set up the JDK
+        uses: ./.repo-config/.github/actions/setup-jdk
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6

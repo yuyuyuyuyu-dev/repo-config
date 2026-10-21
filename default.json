@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended", ":semanticCommits"],
+  "ignorePresets": [":semanticPrefixFixDepsChoreOthers"],
+  "semanticCommitType": "build",
+  "labels": ["dependencies"],
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch"],

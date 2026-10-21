@@ -3,12 +3,6 @@ name: Deploy to GitHub Pages
 on:
   workflow_call:
     inputs:
-      jdk-distribution:
-        type: string
-        required: true
-      jdk-version:
-        type: string
-        required: true
       gradle-arguments:
         type: string
         required: true
@@ -40,13 +34,17 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
 
-      - name: Set up the JDK
-        uses: actions/setup-java@v6
+      - name: Check out repo-config
+        uses: actions/checkout@v7
         with:
-          distribution: ${{ inputs.jdk-distribution }}
-          java-version: ${{ inputs.jdk-version }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .repo-config
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Set up the JDK
+        uses: ./.repo-config/.github/actions/setup-jdk
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6

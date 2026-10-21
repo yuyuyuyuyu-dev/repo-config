@@ -1,31 +1,34 @@
 # repo-config
 
-Workflows and Renovate presets shared by the repositories of yuyuyuyuyu-dev.
+Workflows, an action and Renovate presets shared by the repositories of yuyuyuyuyu-dev.
 
 ## Table of contents
 
 - [What it provides](#what-it-provides)
 - [Workflows](#workflows)
   - [Oxfmt](#oxfmt)
-  - [Kotlin lint](#kotlin-lint)
+  - [Compose Multiplatform lint](#compose-multiplatform-lint)
   - [Deploy to GitHub Pages](#deploy-to-github-pages)
   - [Update yarn.lock](#update-yarnlock)
+- [Actions](#actions)
+  - [Set up the JDK](#set-up-the-jdk)
 - [Renovate presets](#renovate-presets)
 - [License](#license)
 
 ## What it provides
 
-| Name                                              | For                      | What it does                                                                   |
-| ------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------ |
-| [Oxfmt](#oxfmt)                                   | Every repository         | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter). |
-| [Kotlin lint](#kotlin-lint)                       | Kotlin projects          | Runs Detekt and ktlint, and checks the formatting of the version catalog.      |
-| [Deploy to GitHub Pages](#deploy-to-github-pages) | Compose for Web projects | Builds the app and deploys it to GitHub Pages.                                 |
-| [Update yarn.lock](#update-yarnlock)              | Compose for Web projects | Regenerates yarn.lock, opens a pull request and enables auto-merge on it.      |
-| [Renovate presets](#renovate-presets)             | Repositories on Renovate | Groups and auto-merges minor and patch updates.                                |
+| Name                                                      | For                            | What it does                                                                   |
+| --------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------ |
+| [Oxfmt](#oxfmt)                                           | Every repository               | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter). |
+| [Compose Multiplatform lint](#compose-multiplatform-lint) | Compose Multiplatform projects | Runs Detekt and ktlint, and checks the formatting of the version catalog.      |
+| [Deploy to GitHub Pages](#deploy-to-github-pages)         | Compose for Web projects       | Builds the app and deploys it to GitHub Pages.                                 |
+| [Update yarn.lock](#update-yarnlock)                      | Compose for Web projects       | Regenerates yarn.lock, opens a pull request and enables auto-merge on it.      |
+| [Set up the JDK](#set-up-the-jdk)                         | Compose Multiplatform projects | Sets up the JDK that the Compose Multiplatform template runs Gradle on.        |
+| [Renovate presets](#renovate-presets)                     | Repositories that use Renovate | Groups and auto-merges minor and patch updates.                                |
 
 ## Workflows
 
-Each workflow is a reusable workflow. Call it from a job in your own workflow, which decides when it runs.
+Each workflow is a reusable workflow. Call it from a job in your own workflow, which decides when it runs. The workflows that run Gradle set it up on the JDK of [Set up the JDK](#set-up-the-jdk).
 
 ### Oxfmt
 
@@ -40,29 +43,23 @@ jobs:
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/oxfmt.yml@main
 ```
 
-### Kotlin lint
+### Compose Multiplatform lint
 
 Runs three jobs in parallel: Detekt, ktlint, and `versionCatalogFormat` of [version-catalog-update](https://github.com/littlerobots/version-catalog-update-plugin), which fails when the version catalog is not formatted.
 
 ```yaml
 jobs:
-  kotlin-lint:
-    name: Kotlin lint
+  lint:
+    name: Lint
     permissions:
       contents: read
-    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/kotlin-lint.yml@main
-    with:
-      jdk-distribution: jetbrains
-      jdk-version: "21"
+    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/compose-multiplatform-lint.yml@main
 ```
 
-| Input               | Default       | Description                                                                                                     |
-| ------------------- | ------------- | --------------------------------------------------------------------------------------------------------------- |
-| `jdk-distribution`  |               | The JDK distribution to run Gradle on, as [actions/setup-java](https://github.com/actions/setup-java) names it. |
-| `jdk-version`       |               | The JDK version to run Gradle on.                                                                               |
-| `working-directory` | `.`           | The directory that has `gradlew`.                                                                               |
-| `detekt-task`       | `detekt`      | The Gradle task that runs Detekt.                                                                               |
-| `ktlint-task`       | `ktlintCheck` | The Gradle task that runs ktlint.                                                                               |
+| Input         | Default       | Description                       |
+| ------------- | ------------- | --------------------------------- |
+| `detekt-task` | `detekt`      | The Gradle task that runs Detekt. |
+| `ktlint-task` | `ktlintCheck` | The Gradle task that runs ktlint. |
 
 ### Deploy to GitHub Pages
 
@@ -89,26 +86,24 @@ jobs:
       id-token: write
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/deploy-to-github-pages.yml@main
     with:
-      jdk-distribution: jetbrains
-      jdk-version: "21"
       gradle-arguments: |
         :composeApp:exportLibraryDefinitions -PaboutLibraries.exportPath=src/commonMain/composeResources/files/
         :composeApp:wasmJsBrowserDistribution
       distribution-directory: composeApp/build/dist/wasmJs/productionExecutable
 ```
 
-| Input                    | Default | Description                                                                                                     |
-| ------------------------ | ------- | --------------------------------------------------------------------------------------------------------------- |
-| `jdk-distribution`       |         | The JDK distribution to run Gradle on, as [actions/setup-java](https://github.com/actions/setup-java) names it. |
-| `jdk-version`            |         | The JDK version to run Gradle on.                                                                               |
-| `gradle-arguments`       |         | The arguments to `./gradlew`. Each line runs `./gradlew` once, in order.                                        |
-| `distribution-directory` |         | The directory to deploy.                                                                                        |
+| Input                    | Default | Description                                                              |
+| ------------------------ | ------- | ------------------------------------------------------------------------ |
+| `gradle-arguments`       |         | The arguments to `./gradlew`. Each line runs `./gradlew` once, in order. |
+| `distribution-directory` |         | The directory to deploy.                                                 |
 
 The repository has to set the source of GitHub Pages to GitHub Actions in its settings.
 
 ### Update yarn.lock
 
-Deletes `kotlin-js-store/yarn.lock` and `kotlin-js-store/wasm/yarn.lock`, whichever exists, and regenerates them with `kotlinUpgradeYarnLock` and `kotlinWasmUpgradeYarnLock`. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the existing lockfile does not. When anything changed, it opens a pull request as a GitHub App, or updates the one already open, and enables auto-merge on it with squash. When nothing changed, it closes the open pull request.
+Deletes `kotlin-js-store/yarn.lock` and `kotlin-js-store/wasm/yarn.lock`, whichever exists, and regenerates them with `kotlinUpgradeYarnLock` and `kotlinWasmUpgradeYarnLock`. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfile does not. When anything changed, it opens a pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it closes the open pull request.
+
+Gradle runs in a job that has no write access. Only the job after it, which runs no build, gets the token of the app.
 
 Neither Dependabot nor Renovate can update these lockfiles, because the Kotlin Gradle Plugin generates them and there is no package.json for them to read.
 
@@ -127,18 +122,14 @@ jobs:
     name: Update yarn.lock
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/update-yarn-lock.yml@main
     with:
-      jdk-distribution: jetbrains
-      jdk-version: "21"
       app-client-id: ${{ vars.PR_BOT_CLIENT_ID }}
     secrets:
       app-private-key: ${{ secrets.PR_BOT_PRIVATE_KEY }}
 ```
 
-| Input              | Default | Description                                                                                                     |
-| ------------------ | ------- | --------------------------------------------------------------------------------------------------------------- |
-| `jdk-distribution` |         | The JDK distribution to run Gradle on, as [actions/setup-java](https://github.com/actions/setup-java) names it. |
-| `jdk-version`      |         | The JDK version to run Gradle on.                                                                               |
-| `app-client-id`    |         | The client ID of the GitHub App that opens the pull request.                                                    |
+| Input           | Default | Description                                                  |
+| --------------- | ------- | ------------------------------------------------------------ |
+| `app-client-id` |         | The client ID of the GitHub App that opens the pull request. |
 
 | Secret            | Description                                                    |
 | ----------------- | -------------------------------------------------------------- |
@@ -146,12 +137,24 @@ jobs:
 
 The app needs read and write access to the contents and the pull requests of the repository. A pull request opened by an app, unlike one opened by `GITHUB_TOKEN`, triggers the other workflows, so the required checks run on it. The repository has to allow auto-merge in its settings.
 
+## Actions
+
+### Set up the JDK
+
+Sets up Zulu 21, the JDK that `gradle/gradle-daemon-jvm.properties` of the Compose Multiplatform template asks for. Use it in the jobs of your own workflows that run Gradle:
+
+```yaml
+steps:
+  - name: Set up the JDK
+    uses: yuyuyuyuyu-dev/repo-config/.github/actions/setup-jdk@main
+```
+
 ## Renovate presets
 
-| Preset                                                    | What it does                                                                                                                                                                                        |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `github>yuyuyuyuyu-dev/repo-config`                       | Extends `config:recommended`, groups minor and patch updates into one pull request, and auto-merges it once the checks pass.                                                                        |
-| `github>yuyuyuyuyu-dev/repo-config:compose-multiplatform` | Leaves Compose Multiplatform to [update-compose-multiplatform](https://github.com/yuyuyuyuyu-dev/update-compose-multiplatform), which updates it together with the libraries that have to match it. |
+| Preset                                                    | What it does                                                                                                                                                                                                                     |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github>yuyuyuyuyu-dev/repo-config`                       | Extends `config:recommended`, groups minor and patch updates into one pull request, and auto-merges it once the checks pass. Commits start with `build(deps):` and pull requests are labeled `dependencies`, as Dependabot does. |
+| `github>yuyuyuyuyu-dev/repo-config:compose-multiplatform` | Leaves Compose Multiplatform to [update-compose-multiplatform](https://github.com/yuyuyuyuyu-dev/update-compose-multiplatform), which updates it together with the libraries that have to match it.                              |
 
 Extend them from `renovate.json` of your repository:
 
