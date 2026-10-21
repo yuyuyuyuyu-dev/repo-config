@@ -1,17 +1,17 @@
 # repo-config
 
-Shared config and workflows bitween my repositories.（「自分のリポジトリで使う共通の設定やワークフロー」と書いたつもり）
+Configuration and workflows shared by my repositories.
 
 ## Table of contents
 
-- なぜそれは作られたのか（TODO: 英語化）
+- [Why it was built](#why-it-was-built)
 - [What it provides](#what-it-provides)
-- How to use
+- [How to use](#how-to-use)
 - [License](#license)
 
-## なぜそれは作られたのか（TODO: 英語化）
+## Why it was built
 
-それぞれのリポジトリで何度も同じワークフローを定義していて、新しいリポジトリを作った時にこれまでと同じ処理になっているかの確認が手間になってきたから。
+I had been defining the same workflows again and again in each repository, and checking that a new repository does the same as the others had become tedious.
 
 ## What it provides
 
@@ -24,11 +24,13 @@ Shared config and workflows bitween my repositories.（「自分のリポジト�
 | [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) | Kotlin projects                | Sets up Gradle on Zulu 25 for a Kotlin project, or on Zulu 21 for a Compose Multiplatform project. |
 | [Renovate presets](#renovate-presets)                   | Repositories that use Renovate | Groups and auto-merges minor and patch updates.                                                    |
 
-## Workflows
+## How to use
+
+### Workflows
 
 Each workflow is a reusable workflow. Call it from a job in your own workflow, which decides when it runs. The workflows that run Gradle set it up with [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle).
 
-### Oxfmt
+#### Oxfmt
 
 Checks that every file is formatted by Oxfmt. The version of Oxfmt is pinned in [package.json](package.json) of this repository, so the repository that calls it needs no package.json. Oxfmt reads `.oxfmtrc.json` of that repository, if it has one.
 
@@ -41,7 +43,7 @@ jobs:
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/oxfmt.yml@main
 ```
 
-### Kotlin lint
+#### Kotlin lint
 
 Runs three Gradle tasks as parallel jobs: `detekt` of the [Detekt Gradle plugin](https://detekt.dev/docs/gettingstarted/gradle), `ktlintCheck` of [ktlint-gradle](https://github.com/JLLeitschuh/ktlint-gradle), and `versionCatalogFormat` of [version-catalog-update](https://github.com/littlerobots/version-catalog-update-plugin), which fails when the version catalog is not formatted. The project has to apply these three plugins.
 
@@ -70,7 +72,7 @@ with:
 | `jdk-version`           |         | Passed to [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) as `version`.      |
 | `working-directory`     | `.`     | The directory that has `gradlew`.                                                    |
 
-### Deploy to GitHub Pages
+#### Deploy to GitHub Pages
 
 Builds the Wasm app with `./gradlew :<app-module>:wasmJsBrowserDistribution` and deploys `<app-module>/build/dist/wasmJs/productionExecutable` to GitHub Pages. Anything the build needs, such as the library definitions of [AboutLibraries](https://github.com/mikepenz/AboutLibraries), has to be produced by that Gradle task itself.
 
@@ -106,7 +108,7 @@ jobs:
 
 The repository has to set the source of GitHub Pages to GitHub Actions in its settings.
 
-### Update the Wasm yarn.lock
+#### Update the Wasm yarn.lock
 
 Deletes `kotlin-js-store/wasm/yarn.lock` and regenerates it with `kotlinWasmUpgradeYarnLock`. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfile does not. When anything changed, it opens a pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it deletes the branch of the open pull request, and GitHub closes the pull request because its branch is gone.
 
@@ -146,9 +148,9 @@ The file runs the workflow every day at 7:31 UTC.
 
 The app needs read and write access to the contents and the pull requests of the repository. A pull request opened by an app, unlike one opened by `GITHUB_TOKEN`, triggers the other workflows, so the required checks run on it. The repository has to allow auto-merge in its settings.
 
-## Actions
+### Actions
 
-### Set up the JDK and Gradle
+#### Set up the JDK and Gradle
 
 Sets up Gradle and the JDK it runs on. Use it in the jobs of your own workflows that run Gradle, with the same inputs as the workflows of this repository get, so that every job runs Gradle on the same JDK:
 
@@ -169,7 +171,7 @@ steps:
 
 Passing only one of `distribution` and `version` fails.
 
-## Renovate presets
+### Renovate presets
 
 | Preset                                                    | What it does                                                                                                                                                                                                                                                                                                                                                                     |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
