@@ -9,7 +9,7 @@ Workflows, an action and Renovate presets shared by the repositories of yuyuyuyu
   - [Oxfmt](#oxfmt)
   - [Kotlin lint](#kotlin-lint)
   - [Deploy to GitHub Pages](#deploy-to-github-pages)
-  - [Update yarn.lock](#update-yarnlock)
+  - [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)
 - [Actions](#actions)
   - [Set up the JDK](#set-up-the-jdk)
 - [Renovate presets](#renovate-presets)
@@ -17,14 +17,14 @@ Workflows, an action and Renovate presets shared by the repositories of yuyuyuyu
 
 ## What it provides
 
-| Name                                              | For                            | What it does                                                                   |
-| ------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------ |
-| [Oxfmt](#oxfmt)                                   | Every repository               | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter). |
-| [Kotlin lint](#kotlin-lint)                       | Kotlin projects                | Runs Detekt and ktlint, and checks the formatting of the version catalog.      |
-| [Deploy to GitHub Pages](#deploy-to-github-pages) | Compose for Web projects       | Builds the app and deploys it to GitHub Pages.                                 |
-| [Update yarn.lock](#update-yarnlock)              | Compose for Web projects       | Regenerates yarn.lock, opens a pull request and enables auto-merge on it.      |
-| [Set up the JDK](#set-up-the-jdk)                 | Compose Multiplatform projects | Sets up the JDK that the Compose Multiplatform template runs Gradle on.        |
-| [Renovate presets](#renovate-presets)             | Repositories that use Renovate | Groups and auto-merges minor and patch updates.                                |
+| Name                                                   | For                            | What it does                                                                       |
+| ------------------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------------------- |
+| [Oxfmt](#oxfmt)                                        | Every repository               | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter).     |
+| [Kotlin lint](#kotlin-lint)                            | Kotlin projects                | Runs Detekt and ktlint, and checks the formatting of the version catalog.          |
+| [Deploy to GitHub Pages](#deploy-to-github-pages)      | Compose for Web projects       | Builds the app and deploys it to GitHub Pages.                                     |
+| [Update the Wasm yarn.lock](#update-the-wasm-yarnlock) | Compose for Web projects       | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it. |
+| [Set up the JDK](#set-up-the-jdk)                      | Compose Multiplatform projects | Sets up the JDK that the Compose Multiplatform template runs Gradle on.            |
+| [Renovate presets](#renovate-presets)                  | Repositories that use Renovate | Groups and auto-merges minor and patch updates.                                    |
 
 ## Workflows
 
@@ -118,16 +118,16 @@ jobs:
 
 The repository has to set the source of GitHub Pages to GitHub Actions in its settings.
 
-### Update yarn.lock
+### Update the Wasm yarn.lock
 
-Deletes `kotlin-js-store/yarn.lock` and `kotlin-js-store/wasm/yarn.lock`, whichever exists, and regenerates them with `kotlinUpgradeYarnLock` and `kotlinWasmUpgradeYarnLock`. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfile does not. When anything changed, it opens a pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it closes the open pull request.
+Deletes `kotlin-js-store/wasm/yarn.lock` and regenerates it with `kotlinWasmUpgradeYarnLock`. The JS lockfile, `kotlin-js-store/yarn.lock`, is left as it is. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfile does not. When anything changed, it opens a pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it closes the open pull request.
 
 Gradle runs in a job that has no write access. Only the job after it, which runs no build, gets the token of the app.
 
-Neither Dependabot nor Renovate can update these lockfiles, because the Kotlin Gradle Plugin generates them and there is no package.json for them to read.
+Neither Dependabot nor Renovate can update this lockfile, because the Kotlin Gradle Plugin generates it and there is no package.json for them to read.
 
 ```yaml
-name: Update yarn.lock
+name: Update the Wasm yarn.lock
 
 on:
   schedule:
@@ -137,9 +137,9 @@ on:
 permissions: {}
 
 jobs:
-  update-yarn-lock:
-    name: Update yarn.lock
-    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/update-yarn-lock.yml@main
+  update-wasm-yarn-lock:
+    name: Update the Wasm yarn.lock
+    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/update-wasm-yarn-lock.yml@main
     with:
       app-client-id: ${{ vars.PR_BOT_CLIENT_ID }}
     secrets:

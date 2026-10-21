@@ -1,4 +1,4 @@
-name: Update yarn.lock
+name: Update the Wasm yarn.lock
 
 on:
   workflow_call:
@@ -13,12 +13,12 @@ on:
 permissions: {}
 
 concurrency:
-  group: chore/update-yarn-lock
+  group: chore/update-wasm-yarn-lock
   cancel-in-progress: false
 
 jobs:
   regenerate:
-    name: Regenerate yarn.lock
+    name: Regenerate the Wasm yarn.lock
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,28 +47,16 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Regenerate yarn.lock
+      - name: Regenerate the Wasm yarn.lock
         run: |
-          tasks=()
-          if [ -f kotlin-js-store/yarn.lock ]; then
-            rm -f kotlin-js-store/yarn.lock build/js/yarn.lock
-            tasks+=(kotlinUpgradeYarnLock)
-          fi
-          if [ -f kotlin-js-store/wasm/yarn.lock ]; then
-            rm -f kotlin-js-store/wasm/yarn.lock build/wasm/yarn.lock
-            tasks+=(kotlinWasmUpgradeYarnLock)
-          fi
-          if [ "${#tasks[@]}" -eq 0 ]; then
-            echo "::error::Neither kotlin-js-store/yarn.lock nor kotlin-js-store/wasm/yarn.lock exists."
-            exit 1
-          fi
-          ./gradlew "${tasks[@]}"
+          rm -f kotlin-js-store/wasm/yarn.lock build/wasm/yarn.lock
+          ./gradlew kotlinWasmUpgradeYarnLock
 
-      - name: Upload yarn.lock
+      - name: Upload the Wasm yarn.lock
         uses: actions/upload-artifact@v7
         with:
-          name: yarn-lock
-          path: kotlin-js-store
+          name: wasm-yarn-lock
+          path: kotlin-js-store/wasm/yarn.lock
           if-no-files-found: error
           retention-days: 1
 
@@ -93,11 +81,11 @@ jobs:
           ref: ${{ needs.regenerate.outputs.commit }}
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Download yarn.lock
+      - name: Download the Wasm yarn.lock
         uses: actions/download-artifact@v8
         with:
-          name: yarn-lock
-          path: kotlin-js-store
+          name: wasm-yarn-lock
+          path: kotlin-js-store/wasm
 
       - name: Open, update or close the pull request
         id: pull-request
@@ -106,12 +94,12 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           base: ${{ github.event.repository.default_branch }}
           sign-commits: true
-          add-paths: kotlin-js-store
-          branch: chore/update-yarn-lock
+          add-paths: kotlin-js-store/wasm/yarn.lock
+          branch: chore/update-wasm-yarn-lock
           delete-branch: true
-          commit-message: "build(deps): update yarn.lock"
-          title: "build(deps): update yarn.lock"
-          body: "`yarn.lock` was deleted and resolved again, so every npm package moved to the newest version its range allows. Upgrading the stored `yarn.lock` instead would keep the versions it already has."
+          commit-message: "build(deps): update the Wasm yarn.lock"
+          title: "build(deps): update the Wasm yarn.lock"
+          body: "`kotlin-js-store/wasm/yarn.lock` was deleted and resolved again, so every npm package moved to the newest version its range allows. Upgrading the stored `yarn.lock` instead would keep the versions it already has."
           labels: dependencies
 
       - name: Enable auto-merge
