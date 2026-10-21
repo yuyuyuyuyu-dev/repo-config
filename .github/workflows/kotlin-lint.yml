@@ -3,6 +3,10 @@ name: Kotlin lint
 on:
   workflow_call:
     inputs:
+      compose-multiplatform:
+        type: boolean
+        required: false
+        default: false
       jdk-distribution:
         type: string
         required: false
@@ -17,20 +21,8 @@ on:
 permissions: {}
 
 jobs:
-  check-inputs:
-    name: Check the inputs
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - name: Check the JDK inputs
-        if: (inputs.jdk-distribution == '') != (inputs.jdk-version == '')
-        run: |
-          echo "::error::Pass jdk-distribution and jdk-version together, or neither."
-          exit 1
-
   detekt:
     name: Detekt
-    needs: check-inputs
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,7 +36,6 @@ jobs:
           persist-credentials: false
 
       - name: Check out repo-config
-        if: inputs.jdk-distribution == ''
         uses: actions/checkout@v7
         with:
           repository: ${{ job.workflow_repository }}
@@ -53,18 +44,12 @@ jobs:
           sparse-checkout: .github/actions
           persist-credentials: false
 
-      - name: Set up the JDK of Compose Multiplatform
-        if: inputs.jdk-distribution == ''
-        uses: ./.repo-config/.github/actions/setup-jdk
-
       - name: Set up the JDK
-        if: inputs.jdk-distribution != ''
-        uses: actions/setup-java@v6
+        uses: ./.repo-config/.github/actions/setup-jdk
         with:
+          compose-multiplatform: ${{ inputs.compose-multiplatform }}
           distribution: ${{ inputs.jdk-distribution }}
-          java-version: ${{ inputs.jdk-version }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          version: ${{ inputs.jdk-version }}
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -74,7 +59,6 @@ jobs:
 
   ktlint:
     name: ktlint
-    needs: check-inputs
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -88,7 +72,6 @@ jobs:
           persist-credentials: false
 
       - name: Check out repo-config
-        if: inputs.jdk-distribution == ''
         uses: actions/checkout@v7
         with:
           repository: ${{ job.workflow_repository }}
@@ -97,18 +80,12 @@ jobs:
           sparse-checkout: .github/actions
           persist-credentials: false
 
-      - name: Set up the JDK of Compose Multiplatform
-        if: inputs.jdk-distribution == ''
-        uses: ./.repo-config/.github/actions/setup-jdk
-
       - name: Set up the JDK
-        if: inputs.jdk-distribution != ''
-        uses: actions/setup-java@v6
+        uses: ./.repo-config/.github/actions/setup-jdk
         with:
+          compose-multiplatform: ${{ inputs.compose-multiplatform }}
           distribution: ${{ inputs.jdk-distribution }}
-          java-version: ${{ inputs.jdk-version }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          version: ${{ inputs.jdk-version }}
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -118,7 +95,6 @@ jobs:
 
   version-catalog:
     name: Version catalog format
-    needs: check-inputs
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -132,7 +108,6 @@ jobs:
           persist-credentials: false
 
       - name: Check out repo-config
-        if: inputs.jdk-distribution == ''
         uses: actions/checkout@v7
         with:
           repository: ${{ job.workflow_repository }}
@@ -141,18 +116,12 @@ jobs:
           sparse-checkout: .github/actions
           persist-credentials: false
 
-      - name: Set up the JDK of Compose Multiplatform
-        if: inputs.jdk-distribution == ''
-        uses: ./.repo-config/.github/actions/setup-jdk
-
       - name: Set up the JDK
-        if: inputs.jdk-distribution != ''
-        uses: actions/setup-java@v6
+        uses: ./.repo-config/.github/actions/setup-jdk
         with:
+          compose-multiplatform: ${{ inputs.compose-multiplatform }}
           distribution: ${{ inputs.jdk-distribution }}
-          java-version: ${{ inputs.jdk-version }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          version: ${{ inputs.jdk-version }}
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6

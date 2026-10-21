@@ -40,6 +40,8 @@ jobs:
 
       - name: Set up the JDK
         uses: ./.repo-config/.github/actions/setup-jdk
+        with:
+          compose-multiplatform: true
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6

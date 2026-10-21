@@ -1,11 +1,57 @@
 name: Set up the JDK
-description: Sets up the JDK that the Compose Multiplatform template runs Gradle on.
+description: Sets up the JDK for a Kotlin project, or the JDK of the template for a Compose Multiplatform project.
+
+inputs:
+  compose-multiplatform:
+    description: Whether the project is a Compose Multiplatform project.
+    required: false
+    default: "false"
+  distribution:
+    description: The JDK distribution for a project that is not a Compose Multiplatform project.
+    required: false
+    default: ""
+  version:
+    description: The JDK version for a project that is not a Compose Multiplatform project.
+    required: false
+    default: ""
 
 runs:
   using: composite
   steps:
+    - name: Choose the JDK
+      id: jdk
+      shell: bash
+      env:
+        COMPOSE_MULTIPLATFORM: ${{ inputs.compose-multiplatform }}
+        DISTRIBUTION: ${{ inputs.distribution }}
+        VERSION: ${{ inputs.version }}
+      run: |
+        if [ "$COMPOSE_MULTIPLATFORM" != true ] && [ "$COMPOSE_MULTIPLATFORM" != false ]; then
+          echo "::error::Pass true or false as compose-multiplatform."
+          exit 1
+        fi
+        if [ -n "$DISTRIBUTION$VERSION" ] && { [ -z "$DISTRIBUTION" ] || [ -z "$VERSION" ]; }; then
+          echo "::error::Pass distribution and version together, or neither."
+          exit 1
+        fi
+        if [ "$COMPOSE_MULTIPLATFORM" = true ] && [ -n "$DISTRIBUTION" ]; then
+          echo "::error::A Compose Multiplatform project runs on the JDK of the template, so pass no distribution or version."
+          exit 1
+        fi
+        if [ "$COMPOSE_MULTIPLATFORM" = true ]; then
+          DISTRIBUTION=zulu
+          VERSION=21
+        elif [ -z "$DISTRIBUTION" ]; then
+          DISTRIBUTION=zulu
+          VERSION=25
+        fi
+        echo "distribution=$DISTRIBUTION" >> "$GITHUB_OUTPUT"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
     - name: Set up the JDK
       uses: actions/setup-java@v6
       with:
-        distribution: zulu
-        java-version: "21"
+        distribution: ${{ steps.jdk.outputs.distribution }}
+        java-version: ${{ steps.jdk.outputs.version }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
