@@ -82,7 +82,7 @@ jobs:
 
 ### Deploy to GitHub Pages
 
-Builds the Wasm app and deploys it to GitHub Pages. It follows the layout of the Compose Multiplatform template: it exports the library definitions of [AboutLibraries](https://github.com/mikepenz/AboutLibraries) with `./gradlew :shared:exportLibraryDefinitions`, builds with `./gradlew :<app-module>:wasmJsBrowserDistribution`, and deploys `<app-module>/build/dist/wasmJs/productionExecutable`. Where the library definitions are written is set by `aboutLibraries.export.outputFile` in `shared/build.gradle.kts`.
+Builds the Wasm app with `./gradlew :<app-module>:wasmJsBrowserDistribution` and deploys `<app-module>/build/dist/wasmJs/productionExecutable` to GitHub Pages. Anything the build needs, such as the library definitions of [AboutLibraries](https://github.com/mikepenz/AboutLibraries), has to be produced by that Gradle task itself.
 
 When it is called on `workflow_run`, it builds the commit that the triggering run checked, not the latest one.
 

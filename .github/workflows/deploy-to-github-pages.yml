@@ -46,9 +46,6 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Export the library definitions
-        run: ./gradlew :shared:exportLibraryDefinitions
-
       - name: Build
         env:
           APP_MODULE: ${{ inputs.app-module }}
