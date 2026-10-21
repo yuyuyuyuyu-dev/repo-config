@@ -1,0 +1,107 @@
+name: Update the Wasm yarn.lock
+
+on:
+  workflow_call:
+    inputs:
+      app-client-id:
+        type: string
+        required: true
+    secrets:
+      app-private-key:
+        required: true
+
+permissions: {}
+
+concurrency: chore/update-wasm-yarn-lock
+
+jobs:
+  regenerate:
+    name: Regenerate the Wasm yarn.lock
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      commit: ${{ steps.checkout.outputs.commit }}
+    steps:
+      - name: Check out the repository
+        id: checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Check out repo-config
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .repo-config
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Set up the JDK and Gradle
+        uses: ./.repo-config/.github/actions/setup-jdk-and-gradle
+        with:
+          compose-multiplatform: true
+
+      - name: Regenerate the Wasm yarn.lock
+        run: |
+          rm -f kotlin-js-store/wasm/yarn.lock build/wasm/yarn.lock
+          ./gradlew kotlinWasmUpgradeYarnLock
+
+      - name: Upload the Wasm yarn.lock
+        uses: actions/upload-artifact@v7
+        with:
+          name: wasm-yarn-lock
+          path: kotlin-js-store/wasm/yarn.lock
+          if-no-files-found: error
+          retention-days: 1
+
+  pull-request:
+    name: Open or update the pull request
+    needs: regenerate
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Create a token for the app
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ inputs.app-client-id }}
+          private-key: ${{ secrets.app-private-key }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.regenerate.outputs.commit }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Download the Wasm yarn.lock
+        uses: actions/download-artifact@v8
+        with:
+          name: wasm-yarn-lock
+          path: kotlin-js-store/wasm
+
+      - name: Open or update the pull request
+        id: pull-request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          base: ${{ github.event.repository.default_branch }}
+          sign-commits: true
+          add-paths: kotlin-js-store/wasm/yarn.lock
+          branch: chore/update-wasm-yarn-lock
+          delete-branch: true
+          commit-message: "build(deps): update the Wasm yarn.lock"
+          title: "build(deps): update the Wasm yarn.lock"
+          body: "`kotlin-js-store/wasm/yarn.lock` was deleted and resolved again, so every npm package moved to the newest version its range allows. Upgrading the stored `yarn.lock` instead would keep the versions it already has."
+          labels: dependencies
+
+      - name: Enable auto-merge
+        if: steps.pull-request.outputs.pull-request-operation == 'created'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PULL_REQUEST: ${{ steps.pull-request.outputs.pull-request-url }}
+        run: gh pr merge --auto --squash "$PULL_REQUEST"

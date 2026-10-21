@@ -1,0 +1,58 @@
+name: Deploy to GitHub Pages
+
+on:
+  workflow_call:
+    inputs:
+      app-module:
+        type: string
+        required: true
+
+permissions: {}
+
+concurrency: github-pages
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
+      - name: Check out repo-config
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .repo-config
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Set up the JDK and Gradle
+        uses: ./.repo-config/.github/actions/setup-jdk-and-gradle
+        with:
+          compose-multiplatform: true
+
+      - name: Build
+        env:
+          APP_MODULE: ${{ inputs.app-module }}
+        run: ./gradlew ":$APP_MODULE:wasmJsBrowserDistribution"
+
+      - name: Upload the distribution
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ inputs.app-module }}/build/dist/wasmJs/productionExecutable
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

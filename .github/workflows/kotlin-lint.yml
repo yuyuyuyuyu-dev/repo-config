@@ -1,0 +1,124 @@
+name: Kotlin lint
+
+on:
+  workflow_call:
+    inputs:
+      compose-multiplatform:
+        type: boolean
+        required: false
+        default: false
+      jdk-distribution:
+        type: string
+        required: false
+      jdk-version:
+        type: string
+        required: false
+      working-directory:
+        type: string
+        required: false
+        default: .
+
+permissions: {}
+
+jobs:
+  detekt:
+    name: Detekt
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check out repo-config
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .repo-config
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Set up the JDK and Gradle
+        uses: ./.repo-config/.github/actions/setup-jdk-and-gradle
+        with:
+          compose-multiplatform: ${{ inputs.compose-multiplatform }}
+          distribution: ${{ inputs.jdk-distribution }}
+          version: ${{ inputs.jdk-version }}
+
+      - name: Run Detekt
+        run: ./gradlew detekt
+
+  ktlint:
+    name: ktlint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check out repo-config
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .repo-config
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Set up the JDK and Gradle
+        uses: ./.repo-config/.github/actions/setup-jdk-and-gradle
+        with:
+          compose-multiplatform: ${{ inputs.compose-multiplatform }}
+          distribution: ${{ inputs.jdk-distribution }}
+          version: ${{ inputs.jdk-version }}
+
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck
+
+  version-catalog:
+    name: Version catalog format
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check out repo-config
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: .repo-config
+          sparse-checkout: .github/actions
+          persist-credentials: false
+
+      - name: Set up the JDK and Gradle
+        uses: ./.repo-config/.github/actions/setup-jdk-and-gradle
+        with:
+          compose-multiplatform: ${{ inputs.compose-multiplatform }}
+          distribution: ${{ inputs.jdk-distribution }}
+          version: ${{ inputs.jdk-version }}
+
+      - name: Format the version catalog
+        run: ./gradlew versionCatalogFormat
+
+      - name: Check that formatting changed nothing
+        run: git diff --exit-code

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "ignorePresets": [":semanticPrefixFixDepsChoreOthers"],
+  "semanticCommitType": "build",
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 1,
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "minor and patch updates",
+      "automerge": true
+    }
+  ]
+}
