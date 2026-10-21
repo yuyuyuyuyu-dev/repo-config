@@ -2,13 +2,6 @@ name: Deploy to GitHub Pages
 
 on:
   workflow_call:
-    inputs:
-      gradle-arguments:
-        type: string
-        required: true
-      distribution-directory:
-        type: string
-        required: true
 
 permissions: {}
 
@@ -49,22 +42,16 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      - name: Export the library definitions
+        run: ./gradlew :shared:exportLibraryDefinitions
+
       - name: Build
-        env:
-          GRADLE_ARGUMENTS: ${{ inputs.gradle-arguments }}
-        run: |
-          mapfile -t invocations <<< "$GRADLE_ARGUMENTS"
-          for invocation in "${invocations[@]}"; do
-            read -r -a arguments <<< "$invocation"
-            if [ "${#arguments[@]}" -gt 0 ]; then
-              ./gradlew "${arguments[@]}"
-            fi
-          done
+        run: ./gradlew :webApp:wasmJsBrowserDistribution
 
       - name: Upload the distribution
         uses: actions/upload-pages-artifact@v5
         with:
-          path: ${{ inputs.distribution-directory }}
+          path: webApp/build/dist/wasmJs/productionExecutable
 
       - name: Deploy to GitHub Pages
         id: deployment
