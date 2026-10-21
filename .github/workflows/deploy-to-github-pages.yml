@@ -9,9 +9,7 @@ on:
 
 permissions: {}
 
-concurrency:
-  group: github-pages
-  cancel-in-progress: false
+concurrency: github-pages
 
 jobs:
   deploy:

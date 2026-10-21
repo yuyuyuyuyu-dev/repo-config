@@ -12,9 +12,7 @@ on:
 
 permissions: {}
 
-concurrency:
-  group: chore/update-wasm-yarn-lock
-  cancel-in-progress: false
+concurrency: chore/update-wasm-yarn-lock
 
 jobs:
   regenerate:
