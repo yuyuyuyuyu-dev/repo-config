@@ -13,14 +13,6 @@ on:
         type: string
         required: false
         default: .
-      detekt-task:
-        type: string
-        required: false
-        default: detekt
-      ktlint-task:
-        type: string
-        required: false
-        default: ktlintCheck
 
 permissions: {}
 
@@ -78,9 +70,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Run Detekt
-        env:
-          TASK: ${{ inputs.detekt-task }}
-        run: ./gradlew "$TASK"
+        run: ./gradlew detekt
 
   ktlint:
     name: ktlint
@@ -124,9 +114,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Run ktlint
-        env:
-          TASK: ${{ inputs.ktlint-task }}
-        run: ./gradlew "$TASK"
+        run: ./gradlew ktlintCheck
 
   version-catalog:
     name: Version catalog format

@@ -45,7 +45,7 @@ jobs:
 
 ### Kotlin lint
 
-Runs three jobs in parallel: Detekt, ktlint, and `versionCatalogFormat` of [version-catalog-update](https://github.com/littlerobots/version-catalog-update-plugin), which fails when the version catalog is not formatted.
+Runs three Gradle tasks as parallel jobs: `detekt` of the [Detekt Gradle plugin](https://detekt.dev/docs/gettingstarted/gradle), `ktlintCheck` of [ktlint-gradle](https://github.com/JLLeitschuh/ktlint-gradle), and `versionCatalogFormat` of [version-catalog-update](https://github.com/littlerobots/version-catalog-update-plugin), which fails when the version catalog is not formatted. The project has to apply these three plugins.
 
 A Compose Multiplatform project passes no JDK, and Gradle runs on the JDK of [Set up the JDK](#set-up-the-jdk):
 
@@ -72,13 +72,11 @@ jobs:
       jdk-version: "25"
 ```
 
-| Input               | Default       | Description                                                                                                                                          |
-| ------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `jdk-distribution`  |               | The JDK distribution to run Gradle on, as [actions/setup-java](https://github.com/actions/setup-java) names it. Pass it together with `jdk-version`. |
-| `jdk-version`       |               | The JDK version to run Gradle on. Pass it together with `jdk-distribution`.                                                                          |
-| `working-directory` | `.`           | The directory that has `gradlew`.                                                                                                                    |
-| `detekt-task`       | `detekt`      | The Gradle task that runs Detekt.                                                                                                                    |
-| `ktlint-task`       | `ktlintCheck` | The Gradle task that runs ktlint.                                                                                                                    |
+| Input               | Default | Description                                                                                                                                          |
+| ------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `jdk-distribution`  |         | The JDK distribution to run Gradle on, as [actions/setup-java](https://github.com/actions/setup-java) names it. Pass it together with `jdk-version`. |
+| `jdk-version`       |         | The JDK version to run Gradle on. Pass it together with `jdk-distribution`.                                                                          |
+| `working-directory` | `.`     | The directory that has `gradlew`.                                                                                                                    |
 
 ### Deploy to GitHub Pages
 
