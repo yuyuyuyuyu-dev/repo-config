@@ -7,7 +7,7 @@ Workflows, an action and Renovate presets shared by the repositories of yuyuyuyu
 - [What it provides](#what-it-provides)
 - [Workflows](#workflows)
   - [Oxfmt](#oxfmt)
-  - [Compose Multiplatform lint](#compose-multiplatform-lint)
+  - [Kotlin lint](#kotlin-lint)
   - [Deploy to GitHub Pages](#deploy-to-github-pages)
   - [Update yarn.lock](#update-yarnlock)
 - [Actions](#actions)
@@ -17,18 +17,18 @@ Workflows, an action and Renovate presets shared by the repositories of yuyuyuyu
 
 ## What it provides
 
-| Name                                                      | For                            | What it does                                                                   |
-| --------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------ |
-| [Oxfmt](#oxfmt)                                           | Every repository               | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter). |
-| [Compose Multiplatform lint](#compose-multiplatform-lint) | Compose Multiplatform projects | Runs Detekt and ktlint, and checks the formatting of the version catalog.      |
-| [Deploy to GitHub Pages](#deploy-to-github-pages)         | Compose for Web projects       | Builds the app and deploys it to GitHub Pages.                                 |
-| [Update yarn.lock](#update-yarnlock)                      | Compose for Web projects       | Regenerates yarn.lock, opens a pull request and enables auto-merge on it.      |
-| [Set up the JDK](#set-up-the-jdk)                         | Compose Multiplatform projects | Sets up the JDK that the Compose Multiplatform template runs Gradle on.        |
-| [Renovate presets](#renovate-presets)                     | Repositories that use Renovate | Groups and auto-merges minor and patch updates.                                |
+| Name                                              | For                            | What it does                                                                   |
+| ------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------ |
+| [Oxfmt](#oxfmt)                                   | Every repository               | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter). |
+| [Kotlin lint](#kotlin-lint)                       | Kotlin projects                | Runs Detekt and ktlint, and checks the formatting of the version catalog.      |
+| [Deploy to GitHub Pages](#deploy-to-github-pages) | Compose for Web projects       | Builds the app and deploys it to GitHub Pages.                                 |
+| [Update yarn.lock](#update-yarnlock)              | Compose for Web projects       | Regenerates yarn.lock, opens a pull request and enables auto-merge on it.      |
+| [Set up the JDK](#set-up-the-jdk)                 | Compose Multiplatform projects | Sets up the JDK that the Compose Multiplatform template runs Gradle on.        |
+| [Renovate presets](#renovate-presets)             | Repositories that use Renovate | Groups and auto-merges minor and patch updates.                                |
 
 ## Workflows
 
-Each workflow is a reusable workflow. Call it from a job in your own workflow, which decides when it runs. The workflows that run Gradle set it up on the JDK of [Set up the JDK](#set-up-the-jdk).
+Each workflow is a reusable workflow. Call it from a job in your own workflow, which decides when it runs. The workflows for Compose Multiplatform and Compose for Web projects run Gradle on the JDK of [Set up the JDK](#set-up-the-jdk).
 
 ### Oxfmt
 
@@ -43,23 +43,42 @@ jobs:
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/oxfmt.yml@main
 ```
 
-### Compose Multiplatform lint
+### Kotlin lint
 
 Runs three jobs in parallel: Detekt, ktlint, and `versionCatalogFormat` of [version-catalog-update](https://github.com/littlerobots/version-catalog-update-plugin), which fails when the version catalog is not formatted.
 
+A Compose Multiplatform project passes no JDK, and Gradle runs on the JDK of [Set up the JDK](#set-up-the-jdk):
+
 ```yaml
 jobs:
-  lint:
-    name: Lint
+  kotlin-lint:
+    name: Kotlin lint
     permissions:
       contents: read
-    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/compose-multiplatform-lint.yml@main
+    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/kotlin-lint.yml@main
 ```
 
-| Input         | Default       | Description                       |
-| ------------- | ------------- | --------------------------------- |
-| `detekt-task` | `detekt`      | The Gradle task that runs Detekt. |
-| `ktlint-task` | `ktlintCheck` | The Gradle task that runs ktlint. |
+Any other Kotlin project passes the JDK it needs:
+
+```yaml
+jobs:
+  kotlin-lint:
+    name: Kotlin lint
+    permissions:
+      contents: read
+    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/kotlin-lint.yml@main
+    with:
+      jdk-distribution: zulu
+      jdk-version: "25"
+```
+
+| Input               | Default       | Description                                                                                                                                          |
+| ------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `jdk-distribution`  |               | The JDK distribution to run Gradle on, as [actions/setup-java](https://github.com/actions/setup-java) names it. Pass it together with `jdk-version`. |
+| `jdk-version`       |               | The JDK version to run Gradle on. Pass it together with `jdk-distribution`.                                                                          |
+| `working-directory` | `.`           | The directory that has `gradlew`.                                                                                                                    |
+| `detekt-task`       | `detekt`      | The Gradle task that runs Detekt.                                                                                                                    |
+| `ktlint-task`       | `ktlintCheck` | The Gradle task that runs ktlint.                                                                                                                    |
 
 ### Deploy to GitHub Pages
 
@@ -151,10 +170,10 @@ steps:
 
 ## Renovate presets
 
-| Preset                                                    | What it does                                                                                                                                                                                                                     |
-| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `github>yuyuyuyuyu-dev/repo-config`                       | Extends `config:recommended`, groups minor and patch updates into one pull request, and auto-merges it once the checks pass. Commits start with `build(deps):` and pull requests are labeled `dependencies`, as Dependabot does. |
-| `github>yuyuyuyuyu-dev/repo-config:compose-multiplatform` | Leaves Compose Multiplatform to [update-compose-multiplatform](https://github.com/yuyuyuyuyu-dev/update-compose-multiplatform), which updates it together with the libraries that have to match it.                              |
+| Preset                                                    | What it does                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github>yuyuyuyuyu-dev/repo-config`                       | Extends `config:recommended`, groups minor and patch updates into one pull request, and auto-merges it once the checks pass. Commits start with `build(deps):` and pull requests are labeled `dependencies`, as Dependabot does.                                                                                                                                                 |
+| `github>yuyuyuyuyu-dev/repo-config:compose-multiplatform` | Leaves Compose Multiplatform to [update-compose-multiplatform](https://github.com/yuyuyuyuyu-dev/update-compose-multiplatform): the Gradle plugin, the libraries that [the CHANGELOG](https://github.com/JetBrains/compose-multiplatform/blob/master/CHANGELOG.md) lists as the ones to match it, and `org.jetbrains.compose.components:components-*`, which shares its version. |
 
 Extend them from `renovate.json` of your repository:
 
