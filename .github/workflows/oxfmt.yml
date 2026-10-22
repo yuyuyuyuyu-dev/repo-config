@@ -15,19 +15,6 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v7
         with:
-          path: repository
-          persist-credentials: false
-
-      - name: Check out repo-config
-        uses: actions/checkout@v7
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          path: repo-config
-          sparse-checkout: |
-            package.json
-            package-lock.json
-          sparse-checkout-cone-mode: false
           persist-credentials: false
 
       - name: Set up Node.js
@@ -35,12 +22,9 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-          cache-dependency-path: repo-config/package-lock.json
 
       - name: Install Oxfmt
-        working-directory: repo-config
         run: npm ci
 
       - name: Run Oxfmt
-        working-directory: repository
-        run: ../repo-config/node_modules/.bin/oxfmt --check
+        run: npm run oxfmt -- --check
