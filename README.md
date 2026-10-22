@@ -32,11 +32,17 @@ Each workflow is a reusable workflow. Call it from a job in your own workflow, w
 
 #### Oxfmt
 
-Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. The repository has to have `package.json` with Oxfmt in `devDependencies`, and `package-lock.json`, so that the same Oxfmt formats the files locally:
+Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. It runs `npm ci` and then `npm run oxfmt -- --check`, so the repository has to have `package.json` with Oxfmt in `devDependencies` and an `oxfmt` script, and `package-lock.json`. Add them with:
 
 ```bash
 npm install --save-dev --save-exact oxfmt
-npx oxfmt
+npm pkg set scripts.oxfmt=oxfmt
+```
+
+Then format the files locally with the same Oxfmt:
+
+```bash
+npm run oxfmt
 ```
 
 Oxfmt reads `.oxfmtrc.json` of the repository, if it has one.

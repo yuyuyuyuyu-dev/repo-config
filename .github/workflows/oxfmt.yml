@@ -27,4 +27,4 @@ jobs:
         run: npm ci
 
       - name: Run Oxfmt
-        run: node_modules/.bin/oxfmt --check
+        run: npm run oxfmt -- --check
