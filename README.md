@@ -144,6 +144,8 @@ permissions: {}
 jobs:
   update-wasm-yarn-lock:
     name: Update the Wasm yarn.lock
+    permissions:
+      contents: read
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/update-wasm-yarn-lock.yml@main
     with:
       app-client-id: ${{ vars.PR_BOT_CLIENT_ID }}
@@ -161,7 +163,7 @@ The file runs the workflow every day at 7:31 UTC.
 | ----------------- | -------------------------------------------------------------- |
 | `app-private-key` | The private key of the GitHub App that opens the pull request. |
 
-The app needs read and write access to the contents and the pull requests of the repository. A pull request opened by an app, unlike one opened by `GITHUB_TOKEN`, triggers the other workflows, so the required checks run on it. The repository has to allow auto-merge in its settings.
+The calling job has to grant `contents: read`, which the job that regenerates `yarn.lock` uses; with less, GitHub refuses to start the workflow. The app needs read and write access to the contents and the pull requests of the repository. A pull request opened by an app, unlike one opened by `GITHUB_TOKEN`, triggers the other workflows, so the required checks run on it. The repository has to allow auto-merge in its settings.
 
 ### Actions
 
