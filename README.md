@@ -30,6 +30,8 @@ I had been defining the same workflows again and again in each repository, and c
 
 Each workflow is a reusable workflow. Call it from a job in your own workflow, which decides when it runs. The workflows that run Gradle set it up with [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle).
 
+No workflow or action uses a cache: a cache restored from an older run can make a build fail where a clean one passes, and the repositories are public, so CI time costs nothing.
+
 #### Oxfmt
 
 Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. It runs `npm ci` and then `npm run oxfmt -- --check`, so the repository has to have `package.json` with Oxfmt in `devDependencies` and an `oxfmt` script, and `package-lock.json`. Add them with:
