@@ -72,6 +72,8 @@ jobs:
 
 #### Biome
 
+Checks the repository with Biome, in the version that the repository pins with npm, pnpm, Yarn or Bun.
+
 ```yaml
 jobs:
   biome:
