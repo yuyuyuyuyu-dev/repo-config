@@ -17,14 +17,37 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Choose the package manager
+        id: package-manager
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "name=pnpm" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=npm" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up pnpm
+        if: steps.package-manager.outputs.name == 'pnpm'
+        uses: pnpm/action-setup@v6
+
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version: "24"
           package-manager-cache: false
 
-      - name: Install Oxfmt
+      - name: Install Oxfmt with npm
+        if: steps.package-manager.outputs.name == 'npm'
         run: npm ci
 
-      - name: Run Oxfmt
+      - name: Install Oxfmt with pnpm
+        if: steps.package-manager.outputs.name == 'pnpm'
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Oxfmt with npm
+        if: steps.package-manager.outputs.name == 'npm'
         run: npm run oxfmt -- --check
+
+      - name: Run Oxfmt with pnpm
+        if: steps.package-manager.outputs.name == 'pnpm'
+        run: pnpm run oxfmt --check

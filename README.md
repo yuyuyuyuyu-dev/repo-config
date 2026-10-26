@@ -18,6 +18,7 @@ I had been defining the same workflows again and again in each repository, and c
 | Name                                                    | For                            | What it does                                                                                       |
 | ------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
 | [Oxfmt](#oxfmt)                                         | Every repository               | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter).                     |
+| [Biome](#biome)                                         | TypeScript projects            | Runs [Biome](https://biomejs.dev/).                                                                |
 | [Kotlin lint](#kotlin-lint)                             | Kotlin projects                | Runs Detekt and ktlint, and checks the formatting of the version catalog.                          |
 | [Deploy to GitHub Pages](#deploy-to-github-pages)       | Compose for Web projects       | Builds the app and deploys it to GitHub Pages.                                                     |
 | [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)  | Compose for Web projects       | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it.                 |
@@ -32,7 +33,7 @@ Each workflow is a reusable workflow. Call it from a job in your own workflow, w
 
 #### Oxfmt
 
-Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. It runs `npm ci` and then `npm run oxfmt -- --check`, so the repository has to have `package.json` with Oxfmt in `devDependencies` and an `oxfmt` script, and `package-lock.json`. Add them with:
+Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. The repository has to have `package.json` with Oxfmt in `devDependencies` and an `oxfmt` script, and a lockfile of npm or pnpm. With `package-lock.json`, it runs `npm ci` and then `npm run oxfmt -- --check`. Add them with:
 
 ```bash
 npm install --save-dev --save-exact oxfmt
@@ -45,6 +46,19 @@ Then format the files locally with the same Oxfmt:
 npm run oxfmt
 ```
 
+With `pnpm-lock.yaml`, it sets up the pnpm that `packageManager` of `package.json` names, runs `pnpm install --frozen-lockfile` and then `pnpm run oxfmt --check`. Add them with:
+
+```bash
+pnpm add --save-dev --save-exact oxfmt
+pnpm pkg set scripts.oxfmt=oxfmt
+```
+
+Then format the files locally with the same Oxfmt:
+
+```bash
+pnpm run oxfmt
+```
+
 Oxfmt reads `.oxfmtrc.json` of the repository, if it has one.
 
 ```yaml
@@ -54,6 +68,19 @@ jobs:
     permissions:
       contents: read
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/oxfmt.yml@main
+```
+
+#### Biome
+
+Runs `biome ci` with [setup-biome](https://github.com/biomejs/setup-biome), which installs the version of `@biomejs/biome` that the lockfile of the repository pins. Biome reads `biome.json` of the repository.
+
+```yaml
+jobs:
+  biome:
+    name: Biome
+    permissions:
+      contents: read
+    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/biome.yml@main
 ```
 
 #### Kotlin lint
