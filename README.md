@@ -72,8 +72,6 @@ jobs:
 
 #### Biome
 
-Runs `biome ci` with [setup-biome](https://github.com/biomejs/setup-biome), which installs the version of `@biomejs/biome` that the lockfile of the repository pins. Biome reads `biome.json` of the repository.
-
 ```yaml
 jobs:
   biome:
