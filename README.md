@@ -59,7 +59,7 @@ Then format the files locally with the same Oxfmt:
 pnpm run oxfmt
 ```
 
-Oxfmt reads `.oxfmtrc.json` of the repository, if it has one.
+Oxfmt reads `.oxfmtrc.json` of the repository, if it has one. Leave the files that another tool also formats to that tool, and keep them away from Oxfmt with `ignorePatterns`: the files [Biome](#biome) checks, and `gradle/libs.versions.toml`, which version-catalog-update formats.
 
 ```yaml
 jobs:
