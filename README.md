@@ -15,15 +15,15 @@ I had been defining the same workflows again and again in each repository, and c
 
 ## What it provides
 
-| Name                                                    | For                            | What it does                                                                                       |
-| ------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
-| [Oxfmt](#oxfmt)                                         | Every repository               | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter).                     |
-| [Biome](#biome)                                         | TypeScript projects            | Runs [Biome](https://biomejs.dev/).                                                                |
-| [Kotlin lint](#kotlin-lint)                             | Kotlin projects                | Runs Detekt and ktlint, and checks the formatting of the version catalog.                          |
-| [Deploy to GitHub Pages](#deploy-to-github-pages)       | Compose for Web projects       | Builds the app and deploys it to GitHub Pages.                                                     |
-| [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)  | Compose for Web projects       | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it.                 |
-| [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) | Kotlin projects                | Sets up Gradle on Zulu 25 for a Kotlin project, or on Zulu 21 for a Compose Multiplatform project. |
-| [Renovate presets](#renovate-presets)                   | Repositories that use Renovate | Groups and auto-merges minor and patch updates.                                                    |
+| Name                                                    | For                                | What it does                                                                                       |
+| ------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [Biome](#biome)                                         | Every repository but Vite projects | Checks the formatting and lints with [Biome](https://biomejs.dev/).                                |
+| [Oxfmt](#oxfmt)                                         | Vite projects                      | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter).                     |
+| [Kotlin lint](#kotlin-lint)                             | Kotlin projects                    | Runs Detekt and ktlint, and checks the formatting of the version catalog.                          |
+| [Deploy to GitHub Pages](#deploy-to-github-pages)       | Compose for Web projects           | Builds the app and deploys it to GitHub Pages.                                                     |
+| [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)  | Compose for Web projects           | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it.                 |
+| [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) | Kotlin projects                    | Sets up Gradle on Zulu 25 for a Kotlin project, or on Zulu 21 for a Compose Multiplatform project. |
+| [Renovate presets](#renovate-presets)                   | Repositories that use Renovate     | Groups and auto-merges minor and patch updates.                                                    |
 
 ## How to use
 
@@ -31,9 +31,48 @@ I had been defining the same workflows again and again in each repository, and c
 
 Each workflow is a reusable workflow. Call it from a job in your own workflow, which decides when it runs. The workflows that run Gradle set it up with [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle).
 
+#### Biome
+
+Runs `biome ci`, which checks the formatting, the lint rules and the import order of every file Biome supports, such as JSON, YAML, Markdown, CSS, JavaScript and TypeScript. Biome runs in the version that the repository pins in the lockfile of npm, pnpm, Yarn or Bun, so the repository has to have `package.json` with Biome in `devDependencies`. With npm, add it and the configuration with:
+
+```bash
+npm install --save-dev --save-exact @biomejs/biome
+npx biome init --git
+```
+
+With pnpm:
+
+```bash
+pnpm add --save-dev --save-exact @biomejs/biome
+pnpm exec biome init --git
+```
+
+`--git` makes Biome skip the files that `.gitignore` ignores. Then format the files locally with the same Biome, with npm:
+
+```bash
+npx biome check --write
+```
+
+With pnpm:
+
+```bash
+pnpm exec biome check --write
+```
+
+Biome does not format TOML, so `gradle/libs.versions.toml` is left to version-catalog-update.
+
+```yaml
+jobs:
+  biome:
+    name: Biome
+    permissions:
+      contents: read
+    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/biome.yml@main
+```
+
 #### Oxfmt
 
-Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. The repository has to have `package.json` with Oxfmt in `devDependencies` and an `oxfmt` script, and a lockfile of npm or pnpm. With `package-lock.json`, it runs `npm ci` and then `npm run oxfmt -- --check`. Add them with:
+Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. A Vite project uses it in place of [Biome](#biome). The repository has to have `package.json` with Oxfmt in `devDependencies` and an `oxfmt` script, and a lockfile of npm or pnpm. With `package-lock.json`, it runs `npm ci` and then `npm run oxfmt -- --check`. Add them with:
 
 ```bash
 npm install --save-dev --save-exact oxfmt
@@ -59,7 +98,7 @@ Then format the files locally with the same Oxfmt:
 pnpm run oxfmt
 ```
 
-Oxfmt reads `.oxfmtrc.json` of the repository, if it has one. Leave the files that another tool also formats to that tool, and keep them away from Oxfmt with `ignorePatterns`: the files [Biome](#biome) checks, and `gradle/libs.versions.toml`, which version-catalog-update formats.
+Oxfmt reads `.oxfmtrc.json` of the repository, if it has one.
 
 ```yaml
 jobs:
@@ -68,19 +107,6 @@ jobs:
     permissions:
       contents: read
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/oxfmt.yml@main
-```
-
-#### Biome
-
-Checks the repository with Biome, in the version that the repository pins with npm, pnpm, Yarn or Bun.
-
-```yaml
-jobs:
-  biome:
-    name: Biome
-    permissions:
-      contents: read
-    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/biome.yml@main
 ```
 
 #### Kotlin lint
@@ -224,11 +250,11 @@ Extend them from `renovate.json` of your repository:
 
 ```json
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "github>yuyuyuyuyu-dev/repo-config",
-    "github>yuyuyuyuyu-dev/repo-config:compose-multiplatform"
-  ]
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": [
+		"github>yuyuyuyuyu-dev/repo-config",
+		"github>yuyuyuyuyu-dev/repo-config:compose-multiplatform"
+	]
 }
 ```
 
