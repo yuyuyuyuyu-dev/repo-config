@@ -33,31 +33,35 @@ Each workflow is a reusable workflow. Call it from a job in your own workflow, w
 
 #### Biome
 
-Runs `biome ci`, which checks the formatting, the lint rules and the import order of every file Biome supports, such as JSON, YAML, Markdown, CSS, JavaScript and TypeScript. Biome runs in the version that the repository pins in the lockfile of npm, pnpm, Yarn or Bun, so the repository has to have `package.json` with Biome in `devDependencies`. With npm, add it and the configuration with:
+Runs `biome ci`, which checks the formatting, the lint rules and the import order of every file Biome supports, such as JSON, YAML, Markdown, CSS, JavaScript and TypeScript, with the version of Biome that the repository pins. The repository has to have `package.json` with Biome in `devDependencies` and a `biome` script, and a lockfile of npm or pnpm. With `package-lock.json`, it runs `npm ci` and then `npm run biome -- ci`. Add them and the configuration with:
 
 ```bash
 npm install --save-dev --save-exact @biomejs/biome
-npx biome init --git
+npm pkg set scripts.biome=biome
+npm run biome -- init --git
 ```
 
-With pnpm:
+Then format the files locally with the same Biome:
+
+```bash
+npm run biome -- check --write
+```
+
+With `pnpm-lock.yaml`, it sets up the pnpm that `packageManager` of `package.json` names, runs `pnpm install --frozen-lockfile` and then `pnpm run biome ci`. Add them and the configuration with:
 
 ```bash
 pnpm add --save-dev --save-exact @biomejs/biome
-pnpm exec biome init --git
+pnpm pkg set scripts.biome=biome
+pnpm run biome init --git
 ```
 
-`--git` makes Biome skip the files that `.gitignore` ignores. Then format the files locally with the same Biome, with npm:
+Then format the files locally with the same Biome:
 
 ```bash
-npx biome check --write
+pnpm run biome check --write
 ```
 
-With pnpm:
-
-```bash
-pnpm exec biome check --write
-```
+`--git` makes Biome skip the files that `.gitignore` ignores. Run Biome through the script rather than with `npx biome`, which runs a version other than the pinned one when Biome is not installed.
 
 Biome does not format TOML, so `gradle/libs.versions.toml` is left to version-catalog-update.
 

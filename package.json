@@ -2,5 +2,8 @@
 	"private": true,
 	"devDependencies": {
 		"@biomejs/biome": "2.6.6"
+	},
+	"scripts": {
+		"biome": "biome"
 	}
 }
