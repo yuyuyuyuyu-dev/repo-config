@@ -62,20 +62,7 @@ jobs:
 
 #### Oxfmt
 
-Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. A Vite project uses it in place of [Biome](#biome). The repository has to have `package.json` with Oxfmt in `devDependencies` and an `oxfmt` script, and a lockfile of npm or pnpm. With `package-lock.json`, it runs `npm ci` and then `npm run oxfmt -- --check`. Add them with:
-
-```bash
-npm install --save-dev --save-exact oxfmt
-npm pkg set scripts.oxfmt=oxfmt
-```
-
-Then format the files locally with the same Oxfmt:
-
-```bash
-npm run oxfmt
-```
-
-With `pnpm-lock.yaml`, it sets up the pnpm that `packageManager` of `package.json` names, runs `pnpm install --frozen-lockfile` and then `pnpm run oxfmt --check`. Add them with:
+Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. A Vite project uses it in place of [Biome](#biome). The repository has to have `package.json` with Oxfmt in `devDependencies`, an `oxfmt` script and `packageManager` naming pnpm, and `pnpm-lock.yaml`. It sets up the pnpm that `packageManager` names, runs `pnpm install --frozen-lockfile` and then `pnpm run oxfmt --check`. Add them with:
 
 ```bash
 pnpm add --save-dev --save-exact oxfmt
