@@ -15,15 +15,15 @@ I had been defining the same workflows again and again in each repository, and c
 
 ## What it provides
 
-| Name                                                    | For                                | What it does                                                                                       |
-| ------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------- |
-| [Biome](#biome)                                         | Every repository but Vite projects | Checks the formatting and lints with [Biome](https://biomejs.dev/).                                |
-| [Oxfmt](#oxfmt)                                         | Vite projects                      | Checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter).                     |
-| [Kotlin lint](#kotlin-lint)                             | Kotlin projects                    | Runs Detekt and ktlint, and checks the formatting of the version catalog.                          |
-| [Deploy to GitHub Pages](#deploy-to-github-pages)       | Compose for Web projects           | Builds the app and deploys it to GitHub Pages.                                                     |
-| [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)  | Compose for Web projects           | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it.                 |
-| [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) | Kotlin projects                    | Sets up Gradle on Zulu 25 for a Kotlin project, or on Zulu 21 for a Compose Multiplatform project. |
-| [Renovate presets](#renovate-presets)                   | Repositories that use Renovate     | Groups and auto-merges minor and patch updates.                                                    |
+| Name                                                    | For                                | What it does                                                                                                                             |
+| ------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| [Biome](#biome)                                         | Every repository but Vite projects | Checks the formatting and lints with [Biome](https://biomejs.dev/).                                                                      |
+| [Oxc](#oxc)                                             | Vite projects                      | Runs [Oxlint](https://oxc.rs/docs/guide/usage/linter) and checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter). |
+| [Kotlin lint](#kotlin-lint)                             | Kotlin projects                    | Runs Detekt and ktlint, and checks the formatting of the version catalog.                                                                |
+| [Deploy to GitHub Pages](#deploy-to-github-pages)       | Compose for Web projects           | Builds the app and deploys it to GitHub Pages.                                                                                           |
+| [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)  | Compose for Web projects           | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it.                                                       |
+| [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) | Kotlin projects                    | Sets up Gradle on Zulu 25 for a Kotlin project, or on Zulu 21 for a Compose Multiplatform project.                                       |
+| [Renovate presets](#renovate-presets)                   | Repositories that use Renovate     | Groups and auto-merges minor and patch updates.                                                                                          |
 
 ## How to use
 
@@ -49,8 +49,6 @@ npm run biome -- check --write
 
 `--git` makes Biome skip the files that `.gitignore` ignores. Run Biome through the script rather than with `npx biome`, which runs a version other than the pinned one when Biome is not installed.
 
-Biome does not format TOML, so `gradle/libs.versions.toml` is left to version-catalog-update.
-
 ```yaml
 jobs:
   biome:
@@ -60,30 +58,31 @@ jobs:
     uses: yuyuyuyuyu-dev/repo-config/.github/workflows/biome.yml@main
 ```
 
-#### Oxfmt
+#### Oxc
 
-Checks that every file is formatted by Oxfmt, with the version of Oxfmt that the repository pins. A Vite project uses it in place of [Biome](#biome). The repository has to have `package.json` with Oxfmt in `devDependencies`, an `oxfmt` script and `packageManager` naming pnpm, and `pnpm-lock.yaml`. It sets up the pnpm that `packageManager` names, runs `pnpm install --frozen-lockfile` and then `pnpm run oxfmt --check`. Add them with:
+Runs Oxlint and checks that every file is formatted by Oxfmt, as parallel jobs, with the versions that the repository pins. A Vite project uses it in place of [Biome](#biome). The repository has to have `package.json` with Oxlint and Oxfmt in `devDependencies`, an `oxlint` script, an `oxfmt` script and `packageManager` naming pnpm, and `pnpm-lock.yaml`. It sets up the pnpm that `packageManager` names, runs `pnpm install --frozen-lockfile`, and then `pnpm run oxlint` and `pnpm run oxfmt --check`. Add them with:
 
 ```bash
-pnpm add --save-dev --save-exact oxfmt
-pnpm pkg set scripts.oxfmt=oxfmt
+pnpm add --save-dev --save-exact oxlint oxfmt
+pnpm pkg set scripts.oxlint=oxlint scripts.oxfmt=oxfmt
 ```
 
-Then format the files locally with the same Oxfmt:
+Then lint and format the files locally with the same Oxlint and Oxfmt:
 
 ```bash
+pnpm run oxlint
 pnpm run oxfmt
 ```
 
-Oxfmt reads `.oxfmtrc.json` of the repository, if it has one.
+Oxlint reads `.oxlintrc.json` and Oxfmt reads `.oxfmtrc.json` of the repository, if it has them.
 
 ```yaml
 jobs:
-  oxfmt:
-    name: Oxfmt
+  oxc:
+    name: Oxc
     permissions:
       contents: read
-    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/oxfmt.yml@main
+    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/oxc.yml@main
 ```
 
 #### Kotlin lint
