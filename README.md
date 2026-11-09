@@ -33,7 +33,7 @@ Each workflow is a reusable workflow. Call it from a job in your own workflow, w
 
 #### Biome
 
-Runs `biome ci`, which checks the formatting, the lint rules and the import order of every file Biome supports, such as JSON, YAML, Markdown, CSS, JavaScript and TypeScript, with the version of Biome that the repository pins. The repository has to have `package.json` with Biome in `devDependencies` and a `biome` script, and a lockfile of npm or pnpm. With `package-lock.json`, it runs `npm ci` and then `npm run biome -- ci`. Add them and the configuration with:
+Runs `biome ci`, which checks the formatting, the lint rules and the import order of every file Biome supports, such as JSON, YAML, Markdown, CSS, JavaScript and TypeScript, with the version of Biome that the repository pins. The repository has to have `package.json` with Biome in `devDependencies` and a `biome` script, and `package-lock.json`. It runs `npm ci` and then `npm run biome -- ci`. Add them and the configuration with:
 
 ```bash
 npm install --save-dev --save-exact @biomejs/biome
@@ -45,20 +45,6 @@ Then format the files locally with the same Biome:
 
 ```bash
 npm run biome -- check --write
-```
-
-With `pnpm-lock.yaml`, it sets up the pnpm that `packageManager` of `package.json` names, runs `pnpm install --frozen-lockfile` and then `pnpm run biome ci`. Add them and the configuration with:
-
-```bash
-pnpm add --save-dev --save-exact @biomejs/biome
-pnpm pkg set scripts.biome=biome
-pnpm run biome init --git
-```
-
-Then format the files locally with the same Biome:
-
-```bash
-pnpm run biome check --write
 ```
 
 `--git` makes Biome skip the files that `.gitignore` ignores. Run Biome through the script rather than with `npx biome`, which runs a version other than the pinned one when Biome is not installed.
