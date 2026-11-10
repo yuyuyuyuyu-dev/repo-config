@@ -33,12 +33,11 @@ Each workflow is a reusable workflow. Call it from a job in your own workflow, w
 
 #### Biome
 
-Runs `biome ci`, which checks the formatting, the lint rules and the import order of every file Biome supports, such as JSON, YAML, Markdown, CSS, JavaScript and TypeScript, with the version of Biome that the repository pins. The repository has to have `package.json` with Biome in `devDependencies` and a `biome` script, and `package-lock.json`. It runs `npm ci` and then `npm run biome -- ci`. Add them and the configuration with:
+Runs `biome ci`, which checks the formatting, the lint rules and the import order of every file Biome supports, such as JSON, YAML, Markdown, CSS, JavaScript and TypeScript, with the version of Biome that the repository pins. The repository has to have `package.json` with Biome in `devDependencies` and a `biome` script, and `package-lock.json`. It runs `npm ci` and then `npm run biome -- ci`. Add them with:
 
 ```bash
 npm install --save-dev --save-exact @biomejs/biome
 npm pkg set scripts.biome=biome
-npm run biome -- init
 ```
 
 Then format the files locally with the same Biome:
