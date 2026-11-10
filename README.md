@@ -17,7 +17,7 @@ I had been defining the same workflows again and again in each repository, and c
 
 | Name                                                    | For                                | What it does                                                                                                                             |
 | ------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [Biome](#biome)                                         | Every repository but Vite projects | Checks the formatting and lints with [Biome](https://biomejs.dev/).                                                                      |
+| [Biome](#biome)                                         | Every repository but Vite projects | Runs [Biome](https://biomejs.dev/).                                                                                                      |
 | [Oxc](#oxc)                                             | Vite projects                      | Runs [Oxlint](https://oxc.rs/docs/guide/usage/linter) and checks the formatting with [Oxfmt](https://oxc.rs/docs/guide/usage/formatter). |
 | [Kotlin lint](#kotlin-lint)                             | Kotlin projects                    | Runs Detekt and ktlint, and checks the formatting of the version catalog.                                                                |
 | [Deploy to GitHub Pages](#deploy-to-github-pages)       | Compose for Web projects           | Builds the app and deploys it to GitHub Pages.                                                                                           |
@@ -33,7 +33,7 @@ Each workflow is a reusable workflow. Call it from a job in your own workflow, w
 
 #### Biome
 
-Runs `biome ci`, which checks the formatting, the lint rules and the import order of every file Biome supports, such as JSON, YAML, Markdown, CSS, JavaScript and TypeScript, with the version of Biome that the repository pins. The repository has to have `package.json` with Biome in `devDependencies` and a `biome` script, and `package-lock.json`. It runs `npm ci` and then `npm run biome -- ci`. Add them with:
+Runs `biome ci` with the version of Biome that the repository pins. The repository has to have `package.json` with Biome in `devDependencies` and a `biome` script, and `package-lock.json`. It runs `npm ci` and then `npm run biome -- ci`. Add them with:
 
 ```bash
 npm install --save-dev --save-exact @biomejs/biome
