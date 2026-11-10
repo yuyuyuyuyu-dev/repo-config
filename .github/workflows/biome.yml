@@ -17,8 +17,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Biome
-        uses: biomejs/setup-biome@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install Biome
+        run: npm ci
 
       - name: Run Biome
-        run: biome ci
+        run: npm run biome -- ci

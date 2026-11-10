@@ -9,8 +9,8 @@ on:
 permissions: {}
 
 jobs:
-  oxfmt:
-    name: Oxfmt
+  biome:
+    name: Biome
     permissions:
       contents: read
-    uses: ./.github/workflows/oxfmt.yml
+    uses: ./.github/workflows/biome.yml
