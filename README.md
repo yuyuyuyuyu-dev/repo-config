@@ -38,7 +38,7 @@ Runs `biome ci`, which checks the formatting, the lint rules and the import orde
 ```bash
 npm install --save-dev --save-exact @biomejs/biome
 npm pkg set scripts.biome=biome
-npm run biome -- init --git
+npm run biome -- init
 ```
 
 Then format the files locally with the same Biome:
@@ -47,7 +47,7 @@ Then format the files locally with the same Biome:
 npm run biome -- check --write
 ```
 
-`--git` makes Biome skip the files that `.gitignore` ignores. Run Biome through the script rather than with `npx biome`, which runs a version other than the pinned one when Biome is not installed.
+Run Biome through the script rather than with `npx biome`, which runs a version other than the pinned one when Biome is not installed.
 
 ```yaml
 jobs:
@@ -60,7 +60,7 @@ jobs:
 
 #### Oxc
 
-Runs Oxlint and checks that every file is formatted by Oxfmt, as parallel jobs, with the versions that the repository pins. A Vite project uses it in place of [Biome](#biome). The repository has to have `package.json` with Oxlint and Oxfmt in `devDependencies`, an `oxlint` script, an `oxfmt` script and `packageManager` naming pnpm, and `pnpm-lock.yaml`. It sets up the pnpm that `packageManager` names, runs `pnpm install --frozen-lockfile`, and then `pnpm run oxlint` and `pnpm run oxfmt --check`. Add them with:
+Runs Oxlint and checks that every file is formatted by Oxfmt, as parallel jobs, with the versions that the repository pins. A Vite project uses it in place of [Biome](#biome). The repository has to have `package.json` with Oxlint and Oxfmt in `devDependencies`, an `oxlint` script, an `oxfmt` script and `packageManager` naming pnpm, and `pnpm-lock.yaml`. It sets up the pnpm that `packageManager` names, runs `pnpm install --frozen-lockfile`, and then `pnpm run oxlint --deny-warnings`, which fails on warnings too, and `pnpm run oxfmt --check`. Add them with:
 
 ```bash
 pnpm add --save-dev --save-exact oxlint oxfmt
