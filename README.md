@@ -22,6 +22,7 @@ I had been defining the same workflows again and again in each repository, and c
 | [Kotlin lint](#kotlin-lint)                             | Kotlin projects                    | Runs Detekt and ktlint, and checks the formatting of the version catalog.                                     |
 | [Deploy to GitHub Pages](#deploy-to-github-pages)       | Compose for Web projects           | Builds the app and deploys it to GitHub Pages.                                                                |
 | [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)  | Compose for Web projects           | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it.                            |
+| [Update the JS yarn.lock](#update-the-js-yarnlock)      | Compose for Web projects           | Regenerates the JS yarn.lock, opens a pull request and enables auto-merge on it.                              |
 | [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) | Kotlin projects                    | Sets up Gradle on Zulu 25 for a Kotlin project, or on Zulu 21 for a Compose Multiplatform project.            |
 | [Renovate presets](#renovate-presets)                   | Repositories that use Renovate     | Groups and auto-merges minor and patch updates.                                                               |
 
@@ -191,6 +192,32 @@ The file runs the workflow every day at 7:31 UTC.
 | `app-private-key` | The private key of the GitHub App that opens the pull request. |
 
 The calling job has to grant `contents: read`, which the job that regenerates `yarn.lock` uses; with less, GitHub refuses to start the workflow. The app needs read and write access to the contents and the pull requests of the repository. A pull request opened by an app, unlike one opened by `GITHUB_TOKEN`, triggers the other workflows, so the required checks run on it. The repository has to allow auto-merge in its settings.
+
+#### Update the JS yarn.lock
+
+Does what [Update the Wasm yarn.lock](#update-the-wasm-yarnlock) does, for the JS target: it deletes `kotlin-js-store/yarn.lock` and regenerates it with `kotlinUpgradeYarnLock`, and opens its pull request from the `chore/update-js-yarn-lock` branch. It takes the same inputs and secret, and needs the same permissions and settings.
+
+```yaml
+name: Update the JS yarn.lock
+
+on:
+  schedule:
+    - cron: "31 7 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  update-js-yarn-lock:
+    name: Update the JS yarn.lock
+    permissions:
+      contents: read
+    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/update-js-yarn-lock.yml@main
+    with:
+      app-client-id: ${{ vars.PR_BOT_CLIENT_ID }}
+    secrets:
+      app-private-key: ${{ secrets.PR_BOT_PRIVATE_KEY }}
+```
 
 ### Actions
 
