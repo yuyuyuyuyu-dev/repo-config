@@ -151,7 +151,7 @@ The repository has to set the source of GitHub Pages to GitHub Actions in its se
 
 #### Update the Wasm yarn.lock
 
-Deletes `kotlin-js-store/wasm/yarn.lock` and regenerates it with `kotlinWasmUpgradeYarnLock`. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfile does not. When anything changed, it opens a pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it deletes the branch of the open pull request, and GitHub closes the pull request because its branch is gone.
+Deletes `kotlin-js-store/wasm/yarn.lock` and regenerates it with `kotlinWasmUpgradeYarnLock`, in the directory that `working-directory` names. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfile does not. When anything changed, it opens a pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it deletes the branch of the open pull request, and GitHub closes the pull request because its branch is gone.
 
 Gradle runs in a job that has no write access. Only the job after it, which runs no build, gets the token of the app.
 
@@ -181,9 +181,10 @@ jobs:
 
 The file runs the workflow every day at 7:31 UTC.
 
-| Input           | Default | Description                                                  |
-| --------------- | ------- | ------------------------------------------------------------ |
-| `app-client-id` |         | The client ID of the GitHub App that opens the pull request. |
+| Input               | Default | Description                                                  |
+| ------------------- | ------- | ------------------------------------------------------------ |
+| `app-client-id`     |         | The client ID of the GitHub App that opens the pull request. |
+| `working-directory` | `.`     | The directory that has `gradlew`.                            |
 
 | Secret            | Description                                                    |
 | ----------------- | -------------------------------------------------------------- |
