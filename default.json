@@ -14,6 +14,14 @@
 			"matchUpdateTypes": ["minor", "patch"],
 			"groupName": "minor and patch updates",
 			"automerge": true
+		},
+		{
+			"matchDatasources": ["github-releases"],
+			"matchPackageNames": ["actions/node-versions"],
+			"sourceUrl": "https://github.com/nodejs/node",
+			"prBodyNotes": [
+				"{{#if isMajor}}### Node.js major versions\n\nWhat each major version changed is in the release notes of its first release:\n\n{{#each releases}}{{#if (containsString version \".0.0\")}}- [Node.js {{version}}](https://github.com/nodejs/node/releases/tag/v{{version}})\n{{/if}}{{/each}}{{/if}}"
+			]
 		}
 	]
 }
