@@ -21,7 +21,7 @@ I had been defining the same workflows again and again in each repository, and c
 | [Oxc](#oxc)                                             | Vite projects                      | Runs [Oxlint](https://oxc.rs/docs/guide/usage/linter) and [Oxfmt](https://oxc.rs/docs/guide/usage/formatter). |
 | [Kotlin lint](#kotlin-lint)                             | Kotlin projects                    | Runs Detekt and ktlint, and checks the formatting of the version catalog.                                     |
 | [Deploy to GitHub Pages](#deploy-to-github-pages)       | Compose for Web projects           | Builds the app and deploys it to GitHub Pages.                                                                |
-| [Update the Wasm yarn.lock](#update-the-wasm-yarnlock)  | Compose for Web projects           | Regenerates the Wasm yarn.lock, opens a pull request and enables auto-merge on it.                            |
+| [Update yarn.lock](#update-yarnlock)                    | Compose for Web projects           | Regenerates the JS and Wasm yarn.lock files, opens a pull request and enables auto-merge on it.               |
 | [Set up the JDK and Gradle](#set-up-the-jdk-and-gradle) | Kotlin projects                    | Sets up Gradle on Zulu 25 for a Kotlin project, or on Zulu 21 for a Compose Multiplatform project.            |
 | [Renovate presets](#renovate-presets)                   | Repositories that use Renovate     | Groups and auto-merges minor and patch updates.                                                               |
 
@@ -149,16 +149,16 @@ jobs:
 
 The repository has to set the source of GitHub Pages to GitHub Actions in its settings.
 
-#### Update the Wasm yarn.lock
+#### Update yarn.lock
 
-Deletes `kotlin-js-store/wasm/yarn.lock` and regenerates it with `kotlinWasmUpgradeYarnLock`. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfile does not. When anything changed, it opens a pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it deletes the branch of the open pull request, and GitHub closes the pull request because its branch is gone.
+Deletes the yarn.lock files that the inputs ask for and regenerates them: `kotlin-js-store/yarn.lock` with `kotlinUpgradeYarnLock`, and `kotlin-js-store/wasm/yarn.lock` with `kotlinWasmUpgradeYarnLock`, in the directory that `working-directory` names. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfiles does not. When anything changed, it opens one pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it deletes the branch of the open pull request, and GitHub closes the pull request because its branch is gone.
 
 Gradle runs in a job that has no write access. Only the job after it, which runs no build, gets the token of the app.
 
-Neither Dependabot nor Renovate can update this lockfile, because the Kotlin Gradle Plugin generates it and there is no package.json for them to read.
+Neither Dependabot nor Renovate can update these lockfiles, because the Kotlin Gradle Plugin generates them and there is no package.json for them to read.
 
 ```yaml
-name: Update the Wasm yarn.lock
+name: Update yarn.lock
 
 on:
   schedule:
@@ -168,22 +168,29 @@ on:
 permissions: {}
 
 jobs:
-  update-wasm-yarn-lock:
-    name: Update the Wasm yarn.lock
+  update-yarn-lock:
+    name: Update yarn.lock
     permissions:
       contents: read
-    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/update-wasm-yarn-lock.yml@main
+    uses: yuyuyuyuyu-dev/repo-config/.github/workflows/update-yarn-lock.yml@main
     with:
       app-client-id: ${{ vars.PR_BOT_CLIENT_ID }}
+      update-js-yarn-lock: true
+      update-wasm-yarn-lock: true
     secrets:
       app-private-key: ${{ secrets.PR_BOT_PRIVATE_KEY }}
 ```
 
 The file runs the workflow every day at 7:31 UTC.
 
-| Input           | Default | Description                                                  |
-| --------------- | ------- | ------------------------------------------------------------ |
-| `app-client-id` |         | The client ID of the GitHub App that opens the pull request. |
+| Input                   | Default | Description                                                  |
+| ----------------------- | ------- | ------------------------------------------------------------ |
+| `app-client-id`         |         | The client ID of the GitHub App that opens the pull request. |
+| `update-js-yarn-lock`   | `false` | `true` to regenerate `kotlin-js-store/yarn.lock`.            |
+| `update-wasm-yarn-lock` | `false` | `true` to regenerate `kotlin-js-store/wasm/yarn.lock`.       |
+| `working-directory`     | `.`     | The directory that has `gradlew`.                            |
+
+At least one of `update-js-yarn-lock` and `update-wasm-yarn-lock` has to be `true`.
 
 | Secret            | Description                                                    |
 | ----------------- | -------------------------------------------------------------- |
