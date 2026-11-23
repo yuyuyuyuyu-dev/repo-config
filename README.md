@@ -155,7 +155,7 @@ Deletes the yarn.lock files that the inputs ask for and regenerates them: `kotli
 
 Gradle runs in a job that has no write access. Only the job after it, which runs no build, gets the token of the app.
 
-Neither Dependabot nor Renovate can update these lockfiles, because the Kotlin Gradle Plugin generates them and there is no package.json for them to read. A Kotlin update changes the npm packages that the plugin asks for, and the build fails until the stored lockfiles follow.
+Neither Dependabot nor Renovate can update these lockfiles, because the Kotlin Gradle Plugin generates them and there is no package.json for them to read.
 
 ```yaml
 name: Update yarn.lock
