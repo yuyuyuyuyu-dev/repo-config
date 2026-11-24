@@ -1,5 +1,5 @@
 name: Set up the JDK and Gradle
-description: Sets up Gradle on the JDK for a Kotlin project, or on the JDK of the template for a Compose Multiplatform project.
+description: Sets up Gradle on the JDK for a Kotlin project, or on the JDK of the template for a Compose Multiplatform project, and caches the dependencies Gradle downloads.
 
 inputs:
   compose-multiplatform:
@@ -55,6 +55,16 @@ runs:
         java-version: ${{ steps.jdk.outputs.version }}
       env:
         GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Cache the downloaded dependencies
+      uses: actions/cache@v6
+      with:
+        path: |
+          ~/.gradle/caches/modules-2
+          !~/.gradle/caches/modules-2/*.lock
+          !~/.gradle/caches/modules-2/gc.properties
+        key: gradle-dependencies-${{ runner.os }}-${{ github.workflow }}-${{ github.job }}-${{ hashFiles('**/*.gradle.kts', '**/*.gradle', '**/gradle/*.versions.toml', '**/gradle-wrapper.properties') }}
+        restore-keys: gradle-dependencies-${{ runner.os }}-${{ github.workflow }}-${{ github.job }}-
 
     - name: Set up Gradle
       uses: gradle/actions/setup-gradle@v6
