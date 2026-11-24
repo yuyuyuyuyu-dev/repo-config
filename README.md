@@ -221,6 +221,8 @@ steps:
 
 Passing only one of `distribution` and `version` fails.
 
+It also caches the dependencies that Gradle downloads, so a job that uses it needs no cache of its own.
+
 ### Renovate presets
 
 | Preset                                                    | What it does                                                                                                                                                                                                                                                                                                                                                                                                          |
