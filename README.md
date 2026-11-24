@@ -221,7 +221,7 @@ steps:
 
 Passing only one of `distribution` and `version` fails.
 
-It caches the dependencies and plugins that Gradle downloads, and nothing else, so that Maven Central does not refuse the runner for sending too many requests. Build outputs are not cached, because a cache restored from an older run once made a build fail where a clean build passed. Each job of each workflow keeps its own cache, which changes when a Gradle build file, a version catalog or the Gradle wrapper changes. When one changes, the job starts from its previous cache and downloads only what is new.
+It also caches the dependencies that Gradle downloads, so a job that uses it needs no cache of its own.
 
 ### Renovate presets
 
