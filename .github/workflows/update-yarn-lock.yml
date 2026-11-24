@@ -14,7 +14,7 @@ on:
         type: boolean
         required: false
         default: false
-      working-directory:
+      working-directories:
         type: string
         required: false
         default: .
@@ -26,9 +26,6 @@ permissions: {}
 
 concurrency: chore/update-yarn-lock
 
-env:
-  KOTLIN_JS_STORE: ${{ inputs.working-directory == '.' && 'kotlin-js-store' || format('{0}/kotlin-js-store', inputs.working-directory) }}
-
 jobs:
   regenerate:
     name: Regenerate yarn.lock
@@ -37,9 +34,7 @@ jobs:
       contents: read
     outputs:
       commit: ${{ steps.checkout.outputs.commit }}
-    defaults:
-      run:
-        working-directory: ${{ inputs.working-directory }}
+      kotlin-js-stores: ${{ steps.regenerate.outputs.kotlin-js-stores }}
     steps:
       - name: Check out the repository
         id: checkout
@@ -63,30 +58,57 @@ jobs:
           compose-multiplatform: true
 
       - name: Regenerate yarn.lock
+        id: regenerate
         env:
           UPDATE_JS_YARN_LOCK: ${{ inputs.update-js-yarn-lock }}
           UPDATE_WASM_YARN_LOCK: ${{ inputs.update-wasm-yarn-lock }}
+          WORKING_DIRECTORIES: ${{ inputs.working-directories }}
         run: |
           tasks=()
+          lockfiles=()
           if [ "$UPDATE_JS_YARN_LOCK" = true ]; then
-            rm -f kotlin-js-store/yarn.lock build/js/yarn.lock
             tasks+=(kotlinUpgradeYarnLock)
+            lockfiles+=(kotlin-js-store/yarn.lock build/js/yarn.lock)
           fi
           if [ "$UPDATE_WASM_YARN_LOCK" = true ]; then
-            rm -f kotlin-js-store/wasm/yarn.lock build/wasm/yarn.lock
             tasks+=(kotlinWasmUpgradeYarnLock)
+            lockfiles+=(kotlin-js-store/wasm/yarn.lock build/wasm/yarn.lock)
           fi
           if [ "${#tasks[@]}" -eq 0 ]; then
             echo "::error::Set update-js-yarn-lock, update-wasm-yarn-lock or both to true."
             exit 1
           fi
-          ./gradlew "${tasks[@]}"
+          mapfile -t directories < <(printf '%s\n' "$WORKING_DIRECTORIES" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's:/*$::' -e '/^$/d')
+          if [ "${#directories[@]}" -eq 0 ]; then
+            echo "::error::Name at least one directory that has gradlew in working-directories."
+            exit 1
+          fi
+          kotlin_js_stores=()
+          for directory in "${directories[@]}"; do
+            (
+              cd "$directory"
+              rm -f "${lockfiles[@]}"
+              ./gradlew "${tasks[@]}"
+            )
+            if [ "$directory" = . ]; then
+              kotlin_js_stores+=(kotlin-js-store)
+            else
+              kotlin_js_stores+=("$directory/kotlin-js-store")
+            fi
+          done
+          tar -cf "$RUNNER_TEMP/yarn-lock.tar" "${kotlin_js_stores[@]}"
+          delimiter="$(dd if=/dev/urandom bs=15 count=1 status=none | base64)"
+          {
+            echo "kotlin-js-stores<<$delimiter"
+            printf '%s\n' "${kotlin_js_stores[@]}"
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Upload yarn.lock
         uses: actions/upload-artifact@v7
         with:
           name: yarn-lock
-          path: ${{ env.KOTLIN_JS_STORE }}
+          path: ${{ runner.temp }}/yarn-lock.tar
           if-no-files-found: error
           retention-days: 1
 
@@ -115,7 +137,10 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: yarn-lock
-          path: ${{ env.KOTLIN_JS_STORE }}
+          path: ${{ runner.temp }}
+
+      - name: Put yarn.lock in place
+        run: tar -xf "$RUNNER_TEMP/yarn-lock.tar"
 
       - name: Open or update the pull request
         id: pull-request
@@ -124,12 +149,12 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           base: ${{ github.event.repository.default_branch }}
           sign-commits: true
-          add-paths: ${{ env.KOTLIN_JS_STORE }}
+          add-paths: ${{ needs.regenerate.outputs.kotlin-js-stores }}
           branch: chore/update-yarn-lock
           delete-branch: true
           commit-message: "build(deps): update yarn.lock"
           title: "build(deps): update yarn.lock"
-          body: "The yarn.lock files in `${{ env.KOTLIN_JS_STORE }}` were deleted and resolved again, so every npm package moved to the newest version its range allows. Upgrading the stored `yarn.lock` instead would keep the versions it already has."
+          body: "The yarn.lock files were deleted and resolved again, so every npm package moved to the newest version its range allows. Upgrading the stored `yarn.lock` instead would keep the versions it already has."
           labels: dependencies
 
       - name: Enable auto-merge

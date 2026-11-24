@@ -151,7 +151,7 @@ The repository has to set the source of GitHub Pages to GitHub Actions in its se
 
 #### Update yarn.lock
 
-Deletes the yarn.lock files that the inputs ask for and regenerates them: `kotlin-js-store/yarn.lock` with `kotlinUpgradeYarnLock`, and `kotlin-js-store/wasm/yarn.lock` with `kotlinWasmUpgradeYarnLock`, in the directory that `working-directory` names. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfiles does not. When anything changed, it opens one pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it deletes the branch of the open pull request, and GitHub closes the pull request because its branch is gone.
+Deletes the yarn.lock files that the inputs ask for and regenerates them: `kotlin-js-store/yarn.lock` with `kotlinUpgradeYarnLock`, and `kotlin-js-store/wasm/yarn.lock` with `kotlinWasmUpgradeYarnLock`, in each directory that `working-directories` names. Regenerating from scratch picks up npm releases within the version ranges, which upgrading the stored lockfiles does not. When anything changed in any of the directories, it opens one pull request as a GitHub App, or updates the one already open, and enables auto-merge with squash on a pull request it opens. When nothing changed, it deletes the branch of the open pull request, and GitHub closes the pull request because its branch is gone.
 
 Gradle runs in a job that has no write access. Only the job after it, which runs no build, gets the token of the app.
 
@@ -183,14 +183,23 @@ jobs:
 
 The file runs the workflow every day at 7:31 UTC.
 
+A repository that has more than one Gradle project, such as a library at the root with a sample project in `example`, names each directory on its own line:
+
+```yaml
+with:
+  working-directories: |
+    .
+    example
+```
+
 | Input                   | Default | Description                                                  |
 | ----------------------- | ------- | ------------------------------------------------------------ |
 | `app-client-id`         |         | The client ID of the GitHub App that opens the pull request. |
 | `update-js-yarn-lock`   | `false` | `true` to regenerate `kotlin-js-store/yarn.lock`.            |
 | `update-wasm-yarn-lock` | `false` | `true` to regenerate `kotlin-js-store/wasm/yarn.lock`.       |
-| `working-directory`     | `.`     | The directory that has `gradlew`.                            |
+| `working-directories`   | `.`     | The directories that have `gradlew`, one per line.           |
 
-At least one of `update-js-yarn-lock` and `update-wasm-yarn-lock` has to be `true`.
+At least one of `update-js-yarn-lock` and `update-wasm-yarn-lock` has to be `true`. They apply to every directory in `working-directories`.
 
 | Secret            | Description                                                    |
 | ----------------- | -------------------------------------------------------------- |
